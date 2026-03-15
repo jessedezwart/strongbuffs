@@ -1,0 +1,22 @@
+package nl.jessedezwart.strongbuffs.runtime;
+
+public enum RuntimeTrigger
+{
+	FULL_REFRESH,
+	CLEAR,
+	GAME_TICK,
+	HITPOINTS,
+	PRAYER_POINTS,
+	REAL_SKILL,
+	XP_GAIN,
+	SPECIAL_ATTACK,
+	RUN_ENERGY,
+	POISON,
+	SLAYER_TASK,
+	PRAYER,
+	INVENTORY,
+	EQUIPMENT,
+	GROUND_ITEMS,
+	PLAYER_LOCATION,
+	PLAYER_INSTANCE
+}

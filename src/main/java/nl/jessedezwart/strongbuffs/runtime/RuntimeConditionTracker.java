@@ -1,7 +1,11 @@
 package nl.jessedezwart.strongbuffs.runtime;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
@@ -42,6 +46,7 @@ public class RuntimeConditionTracker
 
 	@Getter
 	private final RuntimeState runtimeState = new RuntimeState();
+	private final List<RuntimeStateListener> listeners = new CopyOnWriteArrayList<>();
 
 	private RuntimeConditionRequirements requirements = RuntimeConditionRequirements.empty();
 	private boolean started;
@@ -77,13 +82,33 @@ public class RuntimeConditionTracker
 		eventBus.unregister(this);
 		started = false;
 		runtimeState.clear();
+		notifyListeners(EnumSet.of(RuntimeTrigger.CLEAR));
 	}
 
 	public void setRules(List<RuleDefinition> rules)
 	{
-		requirements = RuntimeConditionRequirements.fromRules(rules);
+		setRequirements(RuntimeConditionRequirements.fromRules(rules));
+	}
+
+	public void setRequirements(RuntimeConditionRequirements requirements)
+	{
+		this.requirements = requirements == null ? RuntimeConditionRequirements.empty() : requirements;
 		runtimeState.clear();
+		notifyListeners(EnumSet.of(RuntimeTrigger.CLEAR));
 		refreshTrackedStateAsync();
+	}
+
+	public void addListener(RuntimeStateListener listener)
+	{
+		if (listener != null)
+		{
+			listeners.add(listener);
+		}
+	}
+
+	public void removeListener(RuntimeStateListener listener)
+	{
+		listeners.remove(listener);
 	}
 
 	@Subscribe
@@ -96,6 +121,7 @@ public class RuntimeConditionTracker
 		}
 
 		runtimeState.clear();
+		notifyListeners(EnumSet.of(RuntimeTrigger.CLEAR));
 	}
 
 	@Subscribe
@@ -107,21 +133,32 @@ public class RuntimeConditionTracker
 		}
 
 		runtimeState.getSkills().setCurrentTick(client.getTickCount());
+		EnumSet<RuntimeTrigger> triggers = EnumSet.of(RuntimeTrigger.GAME_TICK);
 
 		if (requirements.tracksRunEnergy())
 		{
 			runtimeState.getLocation().setRunEnergyPercent(client.getEnergy() / 100);
+			triggers.add(RuntimeTrigger.RUN_ENERGY);
 		}
 
 		if (requirements.tracksPlayerLocation())
 		{
 			runtimeState.getLocation().setPlayerLocation(readPlayerLocation());
+			triggers.add(RuntimeTrigger.PLAYER_LOCATION);
 		}
 
 		if (requirements.tracksPlayerInstance())
 		{
 			runtimeState.getLocation().setInInstance(client.getTopLevelWorldView().isInstance());
+			triggers.add(RuntimeTrigger.PLAYER_INSTANCE);
 		}
+
+		if (!requirements.getXpGainSkills().isEmpty())
+		{
+			triggers.add(RuntimeTrigger.XP_GAIN);
+		}
+
+		notifyListeners(triggers);
 	}
 
 	@Subscribe
@@ -134,25 +171,35 @@ public class RuntimeConditionTracker
 
 		runtimeState.getSkills().setCurrentTick(client.getTickCount());
 		Skill skill = event.getSkill();
+		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);
 
 		if (requirements.tracksHitpoints() && skill == Skill.HITPOINTS)
 		{
 			runtimeState.getSkills().setHitpoints(event.getBoostedLevel());
+			triggers.add(RuntimeTrigger.HITPOINTS);
 		}
 
 		if (requirements.tracksPrayerPoints() && skill == Skill.PRAYER)
 		{
 			runtimeState.getSkills().setPrayerPoints(event.getBoostedLevel());
+			triggers.add(RuntimeTrigger.PRAYER_POINTS);
 		}
 
 		if (requirements.getRealSkills().contains(skill))
 		{
 			runtimeState.getSkills().setRealSkillLevel(skill, event.getLevel());
+			triggers.add(RuntimeTrigger.REAL_SKILL);
 		}
 
 		if (requirements.getXpGainSkills().contains(skill))
 		{
 			runtimeState.getSkills().markXpGain(skill);
+			triggers.add(RuntimeTrigger.XP_GAIN);
+		}
+
+		if (!triggers.isEmpty())
+		{
+			notifyListeners(triggers);
 		}
 	}
 
@@ -164,14 +211,19 @@ public class RuntimeConditionTracker
 			return;
 		}
 
+		runtimeState.getSkills().setCurrentTick(client.getTickCount());
+		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);
+
 		if (requirements.tracksSpecialAttack() && event.getVarpId() == VarPlayerID.SA_ENERGY)
 		{
 			runtimeState.getVars().setSpecialAttackPercent(client.getVarpValue(VarPlayerID.SA_ENERGY) / 10);
+			triggers.add(RuntimeTrigger.SPECIAL_ATTACK);
 		}
 
 		if (requirements.tracksPoison() && event.getVarpId() == VarPlayerID.POISON)
 		{
 			runtimeState.getVars().setPoisonState(readPoisonState());
+			triggers.add(RuntimeTrigger.POISON);
 		}
 
 		if (requirements.tracksSlayerTask() && event.getVarpId() == VarPlayerID.SLAYER_COUNT)
@@ -179,6 +231,7 @@ public class RuntimeConditionTracker
 			int remaining = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
 			runtimeState.getVars().setSlayerTaskRemaining(remaining);
 			runtimeState.getVars().setSlayerTaskActive(remaining > 0);
+			triggers.add(RuntimeTrigger.SLAYER_TASK);
 		}
 
 		if (!requirements.getPrayers().isEmpty() && event.getVarbitId() != -1)
@@ -188,9 +241,15 @@ public class RuntimeConditionTracker
 				if (prayer.getVarbit() == event.getVarbitId())
 				{
 					runtimeState.getVars().setPrayerActive(prayer, isPrayerActive(prayer));
+					triggers.add(RuntimeTrigger.PRAYER);
 					break;
 				}
 			}
+		}
+
+		if (!triggers.isEmpty())
+		{
+			notifyListeners(triggers);
 		}
 	}
 
@@ -202,14 +261,24 @@ public class RuntimeConditionTracker
 			return;
 		}
 
+		runtimeState.getSkills().setCurrentTick(client.getTickCount());
+		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);
+
 		if (requirements.hasInventoryTracking() && event.getContainerId() == InventoryID.INV)
 		{
 			refreshInventoryState(event.getItemContainer());
+			triggers.add(RuntimeTrigger.INVENTORY);
 		}
 
 		if (requirements.hasEquipmentTracking() && event.getContainerId() == InventoryID.WORN)
 		{
 			refreshEquipmentState(event.getItemContainer());
+			triggers.add(RuntimeTrigger.EQUIPMENT);
+		}
+
+		if (!triggers.isEmpty())
+		{
+			notifyListeners(triggers);
 		}
 	}
 
@@ -218,11 +287,13 @@ public class RuntimeConditionTracker
 	{
 		if (requirements.hasGroundItemTracking())
 		{
+			runtimeState.getSkills().setCurrentTick(client.getTickCount());
 			String itemName = resolveItemName(event.getItem().getId());
 
 			if (requirements.getGroundItems().contains(itemName))
 			{
 				runtimeState.getGroundItems().incrementNearbyGroundItem(itemName);
+				notifyListeners(EnumSet.of(RuntimeTrigger.GROUND_ITEMS));
 			}
 		}
 	}
@@ -232,11 +303,13 @@ public class RuntimeConditionTracker
 	{
 		if (requirements.hasGroundItemTracking())
 		{
+			runtimeState.getSkills().setCurrentTick(client.getTickCount());
 			String itemName = resolveItemName(event.getItem().getId());
 
 			if (requirements.getGroundItems().contains(itemName))
 			{
 				runtimeState.getGroundItems().decrementNearbyGroundItem(itemName);
+				notifyListeners(EnumSet.of(RuntimeTrigger.GROUND_ITEMS));
 			}
 		}
 	}
@@ -331,6 +404,22 @@ public class RuntimeConditionTracker
 		}
 
 		log.debug("Runtime tracker refreshed");
+		notifyListeners(EnumSet.of(RuntimeTrigger.FULL_REFRESH));
+	}
+
+	private void notifyListeners(Set<RuntimeTrigger> triggers)
+	{
+		if (triggers == null || triggers.isEmpty())
+		{
+			return;
+		}
+
+		Set<RuntimeTrigger> immutableTriggers = Collections.unmodifiableSet(EnumSet.copyOf(triggers));
+
+		for (RuntimeStateListener listener : listeners)
+		{
+			listener.onRuntimeStateChanged(immutableTriggers, runtimeState);
+		}
 	}
 
 	private void refreshInventoryState(ItemContainer itemContainer)

@@ -15,7 +15,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
+import nl.jessedezwart.strongbuffs.runtime.RuleRuntimeController;
 
 @Slf4j
 @PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =
@@ -29,7 +29,7 @@ public class StrongBuffsPlugin extends Plugin
 	private StrongBuffsPanel strongBuffsPanel;
 
 	@Inject
-	private RuntimeConditionTracker runtimeConditionTracker;
+	private RuleRuntimeController ruleRuntimeController;
 
 	private NavigationButton navigationButton;
 
@@ -37,7 +37,7 @@ public class StrongBuffsPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		strongBuffsPanel.reload();
-		runtimeConditionTracker.startUp();
+		ruleRuntimeController.startUp();
 		SwingUtilities.updateComponentTreeUI(strongBuffsPanel.getWrappedPanel());
 		navigationButton = NavigationButton.builder().tooltip("Strong Buffs").icon(createNavigationIcon()).priority(6)
 				.panel(strongBuffsPanel).build();
@@ -48,7 +48,7 @@ public class StrongBuffsPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
-		runtimeConditionTracker.shutDown();
+		ruleRuntimeController.shutDown();
 
 		if (navigationButton != null)
 		{

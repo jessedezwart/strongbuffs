@@ -18,7 +18,7 @@ import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
+import nl.jessedezwart.strongbuffs.runtime.RuleRuntimeController;
 import org.junit.Test;
 
 public class StrongBuffsPluginLifecycleTest
@@ -32,7 +32,7 @@ public class StrongBuffsPluginLifecycleTest
 
 		setField(plugin, "clientToolbar", clientToolbar);
 		setField(plugin, "strongBuffsPanel", panel);
-		setField(plugin, "runtimeConditionTracker", new TestRuntimeConditionTracker());
+		setField(plugin, "ruleRuntimeController", new TestRuleRuntimeController());
 
 		plugin.startUp();
 		SwingUtilities.invokeAndWait(() ->
@@ -53,9 +53,9 @@ public class StrongBuffsPluginLifecycleTest
 		assertNull(getField(plugin, "navigationButton"));
 	}
 
-	private static final class TestRuntimeConditionTracker extends RuntimeConditionTracker
+	private static final class TestRuleRuntimeController extends RuleRuntimeController
 	{
-		private TestRuntimeConditionTracker()
+		private TestRuleRuntimeController()
 		{
 			super(null, null, null, null);
 		}

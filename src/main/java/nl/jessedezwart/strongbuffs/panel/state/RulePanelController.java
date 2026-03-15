@@ -18,7 +18,7 @@ import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
+import nl.jessedezwart.strongbuffs.runtime.RuleRuntimeController;
 
 /**
  * Owns persisted rule snapshots, the currently selected draft, validation, and unsaved-changes resolution.
@@ -33,7 +33,7 @@ public class RulePanelController
 	public static final String FIELD_ACTION_COLOR = "action.color";
 
 	private final RuleDefinitionStore store;
-	private final RuntimeConditionTracker runtimeConditionTracker;
+	private final RuleRuntimeController ruleRuntimeController;
 
 	private final List<RuleDefinition> persistedRules = new ArrayList<>();
 
@@ -50,10 +50,10 @@ public class RulePanelController
 
 	@Inject
 	public RulePanelController(RuleDefinitionStore store, ConditionEditorRegistry conditionRegistry,
-		ActionEditorRegistry actionRegistry, RuntimeConditionTracker runtimeConditionTracker)
+		ActionEditorRegistry actionRegistry, RuleRuntimeController ruleRuntimeController)
 	{
 		this.store = store;
-		this.runtimeConditionTracker = runtimeConditionTracker;
+		this.ruleRuntimeController = ruleRuntimeController;
 		reload();
 	}
 
@@ -492,9 +492,9 @@ public class RulePanelController
 
 	private void synchronizeRuntimeTracker()
 	{
-		if (runtimeConditionTracker != null)
+		if (ruleRuntimeController != null)
 		{
-			runtimeConditionTracker.setRules(new ArrayList<>(persistedRules));
+			ruleRuntimeController.setRules(new ArrayList<>(persistedRules));
 		}
 	}
 
