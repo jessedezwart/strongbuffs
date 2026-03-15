@@ -1,0 +1,19 @@
+{
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
+	"editor.detectIndentation": false,
+	"editor.trimAutoWhitespace": true,
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+	"files.encoding": "utf8",
+	"[java]": {
+		"editor.insertSpaces": false,
+		"editor.tabSize": 4,
+		"editor.defaultFormatter": "redhat.java"
+	},
+	"java.format.settings.profile": "RuneLite",
+	"java.format.settings.url": "config/eclipse-formatter.xml",
+	"java.checkstyle.configuration": "${workspaceFolder}/config/checkstyle/checkstyle.xml",
+	"java.checkstyle.version": "10.21.4",
+	"java.compile.nullAnalysis.mode": "disabled"
+}

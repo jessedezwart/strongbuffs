@@ -1,0 +1,11 @@
+{
+	"recommendations": [
+		"redhat.java",
+		"shengchen.vscode-checkstyle",
+		"vscjava.vscode-java-debug",
+		"github.vscode-github-actions",
+		"vscjava.vscode-gradle",
+		"vscjava.vscode-java-dependency",
+		"vscjava.vscode-java-test"
+	]
+}

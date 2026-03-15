@@ -1,0 +1,25 @@
+#!/bin/bash
+# Pre-commit hook: runs checkstyle on staged Java files
+
+# Get list of staged .java files
+STAGED_JAVA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$')
+
+if [ -z "$STAGED_JAVA_FILES" ]; then
+	exit 0
+fi
+
+echo "Running checkstyle on staged Java files..."
+
+# Run checkstyle via Gradle
+./gradlew checkstyleMain checkstyleTest --quiet 2>&1
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	echo ""
+	echo "Checkstyle violations found. Please fix them before committing."
+	echo "Run './gradlew checkstyleMain checkstyleTest' to see details."
+	exit 1
+fi
+
+echo "Checkstyle passed."
+exit 0

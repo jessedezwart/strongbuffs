@@ -1,5 +1,5 @@
 .gradle
-build
+/build
 .idea/
 .project
 .settings/
@@ -7,3 +7,5 @@ build
 nbactions.xml
 nb-configuration.xml
 nbproject/
+docs/runelite-wiki/
+bin
