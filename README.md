@@ -44,8 +44,4 @@ AI-generated code carries the same responsibility as hand-written code. "The AI 
 
 AI is a productivity tool, not a substitute for review.
 
-## License
-
-BSD 2-Clause. See [LICENSE](LICENSE).
-
 This project is not affiliated with Jagex Ltd. or RuneLite.

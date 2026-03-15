@@ -30,7 +30,6 @@ Create the new `Condition` subclass in `src/main/java/` following:
 - Java only (no Kotlin or other JVM languages)
 - Tabs for indentation, Allman-style braces (opening brace on new line)
 - Lombok `@Slf4j` if logging is needed
-- BSD-2-Clause copyright header
 - `@Subscribe` on event methods
 
 ## Step 5 — Wire up
