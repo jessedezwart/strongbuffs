@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -182,7 +183,14 @@ public class RuleEditPanel extends JPanel
 		modeComboBox.setSelectedItem(draft.getActivationMode());
 		modeComboBox.addActionListener(event ->
 		{
-			draft.setActivationMode((ActivationMode) modeComboBox.getSelectedItem());
+			int selectedIndex = modeComboBox.getSelectedIndex();
+
+			if (selectedIndex < 0)
+			{
+				return;
+			}
+
+			draft.setActivationMode(modeComboBox.getItemAt(selectedIndex));
 			onLiveChange.run();
 		});
 		section.add(labeledRow("Mode", modeComboBox));
@@ -201,8 +209,14 @@ public class RuleEditPanel extends JPanel
 	{
 		JPanel section = createSection("Action");
 
-		JComboBox<Class<? extends ActionDefinition>> actionTypeComboBox = new JComboBox<>(
-				actionRegistry.getActionClasses().toArray(new Class[0]));
+		DefaultComboBoxModel<Class<? extends ActionDefinition>> actionTypeModel = new DefaultComboBoxModel<>();
+
+		for (Class<? extends ActionDefinition> actionClass : actionRegistry.getActionClasses())
+		{
+			actionTypeModel.addElement(actionClass);
+		}
+
+		JComboBox<Class<? extends ActionDefinition>> actionTypeComboBox = new JComboBox<>(actionTypeModel);
 		actionTypeComboBox.setRenderer((list, value, index, isSelected,
 				cellHasFocus) -> new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
 						value == null ? "" : actionRegistry.getByActionClass(value).getEditorLabel(), index, isSelected,
@@ -210,8 +224,9 @@ public class RuleEditPanel extends JPanel
 		actionTypeComboBox.setSelectedItem(draft.getAction().getClass());
 		actionTypeComboBox.addActionListener(event ->
 		{
-			Class<? extends ActionDefinition> selectedClass = (Class<? extends ActionDefinition>) actionTypeComboBox
-					.getSelectedItem();
+			int selectedIndex = actionTypeComboBox.getSelectedIndex();
+			Class<? extends ActionDefinition> selectedClass = selectedIndex < 0 ? null
+					: actionTypeModel.getElementAt(selectedIndex);
 
 			if (selectedClass == null || selectedClass == draft.getAction().getClass())
 			{

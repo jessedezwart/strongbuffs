@@ -73,7 +73,8 @@ public class RuleListPanel extends JPanel
 				return;
 			}
 
-			RuleDefinition selected = (RuleDefinition) ruleSelector.getSelectedItem();
+			int selectedIndex = ruleSelector.getSelectedIndex();
+			RuleDefinition selected = selectedIndex < 0 ? null : ruleSelector.getItemAt(selectedIndex);
 			onSelectRule.accept(selected == null ? null : selected.getId());
 		});
 

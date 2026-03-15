@@ -8,14 +8,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.Tile;
 import net.runelite.api.TileItem;
-import net.runelite.api.VarPlayer;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -24,11 +22,13 @@ import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import net.runelite.api.gameval.InventoryID;
 import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
 
 @Singleton
@@ -164,19 +164,19 @@ public class RuntimeConditionTracker
 			return;
 		}
 
-		if (requirements.tracksSpecialAttack() && event.getVarpId() == VarPlayer.SPECIAL_ATTACK_PERCENT)
+		if (requirements.tracksSpecialAttack() && event.getVarpId() == VarPlayerID.SA_ENERGY)
 		{
-			runtimeState.getVars().setSpecialAttackPercent(client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT) / 10);
+			runtimeState.getVars().setSpecialAttackPercent(client.getVarpValue(VarPlayerID.SA_ENERGY) / 10);
 		}
 
-		if (requirements.tracksPoison() && event.getVarpId() == VarPlayer.POISON)
+		if (requirements.tracksPoison() && event.getVarpId() == VarPlayerID.POISON)
 		{
 			runtimeState.getVars().setPoisonState(readPoisonState());
 		}
 
-		if (requirements.tracksSlayerTask() && event.getVarpId() == VarPlayer.SLAYER_TASK_SIZE)
+		if (requirements.tracksSlayerTask() && event.getVarpId() == VarPlayerID.SLAYER_COUNT)
 		{
-			int remaining = client.getVarpValue(VarPlayer.SLAYER_TASK_SIZE);
+			int remaining = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
 			runtimeState.getVars().setSlayerTaskRemaining(remaining);
 			runtimeState.getVars().setSlayerTaskActive(remaining > 0);
 		}
@@ -187,7 +187,7 @@ public class RuntimeConditionTracker
 			{
 				if (prayer.getVarbit() == event.getVarbitId())
 				{
-					runtimeState.getVars().setPrayerActive(prayer, client.isPrayerActive(prayer));
+					runtimeState.getVars().setPrayerActive(prayer, isPrayerActive(prayer));
 					break;
 				}
 			}
@@ -202,12 +202,12 @@ public class RuntimeConditionTracker
 			return;
 		}
 
-		if (requirements.hasInventoryTracking() && event.getContainerId() == InventoryID.INVENTORY.getId())
+		if (requirements.hasInventoryTracking() && event.getContainerId() == InventoryID.INV)
 		{
 			refreshInventoryState(event.getItemContainer());
 		}
 
-		if (requirements.hasEquipmentTracking() && event.getContainerId() == InventoryID.EQUIPMENT.getId())
+		if (requirements.hasEquipmentTracking() && event.getContainerId() == InventoryID.WORN)
 		{
 			refreshEquipmentState(event.getItemContainer());
 		}
@@ -277,7 +277,7 @@ public class RuntimeConditionTracker
 
 		if (requirements.tracksSpecialAttack())
 		{
-			runtimeState.getVars().setSpecialAttackPercent(client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT) / 10);
+			runtimeState.getVars().setSpecialAttackPercent(client.getVarpValue(VarPlayerID.SA_ENERGY) / 10);
 		}
 
 		if (requirements.tracksRunEnergy())
@@ -292,7 +292,7 @@ public class RuntimeConditionTracker
 
 		if (requirements.tracksSlayerTask())
 		{
-			int remaining = client.getVarpValue(VarPlayer.SLAYER_TASK_SIZE);
+			int remaining = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
 			runtimeState.getVars().setSlayerTaskRemaining(remaining);
 			runtimeState.getVars().setSlayerTaskActive(remaining > 0);
 		}
@@ -301,18 +301,18 @@ public class RuntimeConditionTracker
 		{
 			for (Prayer prayer : requirements.getPrayers())
 			{
-				runtimeState.getVars().setPrayerActive(prayer, client.isPrayerActive(prayer));
+				runtimeState.getVars().setPrayerActive(prayer, isPrayerActive(prayer));
 			}
 		}
 
 		if (requirements.hasInventoryTracking())
 		{
-			refreshInventoryState(client.getItemContainer(InventoryID.INVENTORY));
+			refreshInventoryState(client.getItemContainer(InventoryID.INV));
 		}
 
 		if (requirements.hasEquipmentTracking())
 		{
-			refreshEquipmentState(client.getItemContainer(InventoryID.EQUIPMENT));
+			refreshEquipmentState(client.getItemContainer(InventoryID.WORN));
 		}
 
 		if (requirements.hasGroundItemTracking())
@@ -390,7 +390,7 @@ public class RuntimeConditionTracker
 	{
 		runtimeState.getGroundItems().clear();
 
-		Tile[][][] tiles = client.getScene().getTiles();
+		Tile[][][] tiles = client.getTopLevelWorldView().getScene().getTiles();
 
 		if (tiles == null)
 		{
@@ -439,7 +439,7 @@ public class RuntimeConditionTracker
 
 	private RuntimeState.PoisonState readPoisonState()
 	{
-		int poisonValue = client.getVarpValue(VarPlayer.POISON);
+		int poisonValue = client.getVarpValue(VarPlayerID.POISON);
 
 		if (poisonValue >= 1000000)
 		{
@@ -458,6 +458,11 @@ public class RuntimeConditionTracker
 	{
 		int canonicalId = itemManager.canonicalize(itemId);
 		return InventoryRuntimeState.normalizeName(itemManager.getItemComposition(canonicalId).getName());
+	}
+
+	private boolean isPrayerActive(Prayer prayer)
+	{
+		return client.getVarbitValue(prayer.getVarbit()) > 0;
 	}
 
 	private boolean isLoggedIn()

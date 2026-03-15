@@ -33,8 +33,6 @@ public class RulePanelController
 	public static final String FIELD_ACTION_COLOR = "action.color";
 
 	private final RuleDefinitionStore store;
-	private final ConditionEditorRegistry conditionRegistry;
-	private final ActionEditorRegistry actionRegistry;
 	private final RuntimeConditionTracker runtimeConditionTracker;
 
 	private final List<RuleDefinition> persistedRules = new ArrayList<>();
@@ -55,8 +53,6 @@ public class RulePanelController
 		ActionEditorRegistry actionRegistry, RuntimeConditionTracker runtimeConditionTracker)
 	{
 		this.store = store;
-		this.conditionRegistry = conditionRegistry;
-		this.actionRegistry = actionRegistry;
 		this.runtimeConditionTracker = runtimeConditionTracker;
 		reload();
 	}

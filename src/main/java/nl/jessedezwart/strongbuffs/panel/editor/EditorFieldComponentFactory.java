@@ -127,7 +127,14 @@ final class EditorFieldComponentFactory
 		comboBox.setSelectedItem(field.getGetter().get());
 		comboBox.addActionListener(event ->
 		{
-			field.getSetter().accept((T) comboBox.getSelectedItem());
+			int selectedIndex = comboBox.getSelectedIndex();
+
+			if (selectedIndex < 0)
+			{
+				return;
+			}
+
+			field.getSetter().accept(comboBox.getItemAt(selectedIndex));
 			onChange.run();
 		});
 		return comboBox;

@@ -120,7 +120,14 @@ public class ConditionGroupPanel extends JPanel
 		logicComboBox.setMaximumSize(logicComboBox.getPreferredSize());
 		logicComboBox.addActionListener(event ->
 		{
-			group.setLogic((ConditionLogic) logicComboBox.getSelectedItem());
+			int selectedIndex = logicComboBox.getSelectedIndex();
+
+			if (selectedIndex < 0)
+			{
+				return;
+			}
+
+			group.setLogic(logicComboBox.getItemAt(selectedIndex));
 			onLiveChange.run();
 		});
 		header.add(logicComboBox, BorderLayout.WEST);

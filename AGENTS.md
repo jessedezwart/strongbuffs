@@ -57,7 +57,9 @@ ConditionEditorRegistry <- builds condition editor metadata/components
 ActionEditorRegistry    <- builds action editor metadata/components
 RulePanelController     <- owns persisted rules, draft state, and validation
 StrongBuffsPanel        <- PluginPanel sidebar: list/create/edit/delete rules
-RuntimeState            <- cached local-player state for runtime evaluation
+RuntimeConditionRequirements <- selective watchlist derived from enabled rules
+RuntimeConditionTracker <- RuneLite event subscriber that maintains runtime state
+RuntimeState            <- aggregate cached local-player state for runtime evaluation
 ConditionChecker        <- evaluates condition trees against RuntimeState
 StrongBuffsPlugin       <- wires toolbar + panel
 StrongBuffsConfig       <- plugin config stub
@@ -65,9 +67,9 @@ StrongBuffsConfig       <- plugin config stub
 
 ### Current Repo State
 
-- The repo currently has persistence, editor UI, model validation, and a runtime condition-check layer.
-- It does **not** yet have a full event-driven rule engine, trigger index, compiled-rule layer, overlays, or sound playback controllers.
-- Current runtime work should build on `runtime/RuntimeState` and `runtime/ConditionChecker`.
+- The repo currently has persistence, editor UI, model validation, runtime condition evaluation, and selective RuneLite-backed runtime state tracking.
+- It does **not** yet have a full rule engine, trigger index, compiled-rule layer, overlays, or sound playback controllers.
+- Current runtime work should build on `runtime/RuntimeConditionTracker`, `runtime/RuntimeState`, and `runtime/ConditionChecker`.
 
 ### Package Structure
 
@@ -135,8 +137,16 @@ nl.jessedezwart.strongbuffs/
       ConditionGroupPanel.java
       ConditionRowPanel.java
   runtime/
+    RuntimeConditionRequirements.java
+    RuntimeConditionTracker.java
     RuntimeState.java
     ConditionChecker.java
+    state/
+      SkillRuntimeState.java
+      VarRuntimeState.java
+      InventoryRuntimeState.java
+      GroundItemRuntimeState.java
+      LocationRuntimeState.java
 ```
 
 ### Data Model
@@ -175,18 +185,11 @@ abstract class ActionDefinition
 // Runtime snapshot used by condition evaluation
 class RuntimeState
 {
-    int hitpoints;
-    int prayerPoints;
-    int specialAttackPercent;
-    int runEnergyPercent;
-    PoisonState poisonState;
-    Map<Skill, Integer> realSkillLevels;
-    Set<Prayer> activePrayers;
-    Map<String, Integer> inventoryItemCounts;
-    Set<String> equippedItemNames;
-    Set<String> nearbyGroundItemNames;
-    WorldPoint playerLocation;
-    boolean inInstance;
+    SkillRuntimeState skills;
+    VarRuntimeState vars;
+    InventoryRuntimeState inventory;
+    GroundItemRuntimeState groundItems;
+    LocationRuntimeState location;
 }
 ```
 
@@ -205,10 +208,14 @@ Persisted definitions are pure data. They are safe to serialize, diff, validate,
 
 Current runtime evaluation is split into:
 
-- `RuntimeState`: cached local-player state only
-- `ConditionChecker`: evaluates a `ConditionDefinition` or `ConditionGroup` against `RuntimeState`
+- `RuntimeState`: aggregate root for the split runtime slices
+- `ConditionChecker`: recursive tree walker for `ConditionGroup`
+- `ConditionDefinition.matches(RuntimeState)`: leaf condition evaluation lives on the condition implementations
+- `ConditionDefinition.contributeRequirements(...)`: leaf conditions declare the runtime data they require
+- `RuntimeConditionRequirements`: immutable watchlist derived from enabled persisted rules
+- `RuntimeConditionTracker`: subscribes to RuneLite events and populates only the state slices required by the current rule set
 
-The full event-driven rule engine described earlier in this file is still planned work, not current repo state.
+The full activation/cooldown rule engine described earlier in this file is still planned work, not current repo state.
 
 ### Activation Semantics
 
@@ -323,15 +330,27 @@ The panel should edit a draft model and only persist validated data on save. Do 
 
 ## Runtime Check Work
 
-Current check implementation:
+Current runtime implementation:
 
-- `RuntimeState` is a cache object for approved local-player state only.
-- `ConditionChecker` evaluates either a single `ConditionDefinition` or a recursive `ConditionGroup`.
-- Condition evaluation is implemented for the current 15-condition catalog.
+- `RuntimeState` is an aggregate root around split state slices:
+  `SkillRuntimeState`, `VarRuntimeState`, `InventoryRuntimeState`, `GroundItemRuntimeState`, and `LocationRuntimeState`
+- `ConditionChecker` evaluates either a single `ConditionDefinition` or a recursive `ConditionGroup`
+- Each condition implementation owns both:
+  - `matches(RuntimeState)` for evaluation
+  - `contributeRequirements(RuntimeConditionRequirements.Builder)` for declaring runtime dependencies
+- `RuntimeConditionTracker` derives a selective watchlist from enabled rules and only tracks the needed data sources
+
+Current RuneLite wiring:
+
+- `StatChanged` for HP, prayer points, real skill levels, and XP gain
+- `VarbitChanged` for tracked prayers, spec, poison, and slayer task state
+- `ItemContainerChanged` for inventory and equipment conditions
+- `ItemSpawned` / `ItemDespawned` for ground-item conditions
+- `GameTick` only when run energy, XP gain tick state, player location, or instance checks are required
+- `GameStateChanged` to refresh or clear tracked state on login transitions
 
 Still missing:
 
-- RuneLite event subscriptions that populate `RuntimeState`
 - A trigger index
 - A rule engine that handles transitions and cooldowns
 - Action execution/rendering driven by runtime evaluation
@@ -355,10 +374,11 @@ Build in this sequence:
 2. Identify the triggering event and VarBit/API from `docs/runelite-wiki/vars.md` and `events-reference.md`
 3. Add a persisted definition class in `model/condition/`
 4. Register it in `DefinitionRegistry`
-5. Add or extend `runtime/ConditionChecker`
-6. Add tests for serialization and evaluation
-7. If runtime wiring exists for that source, update the future event-driven state population layer
-8. Add a row to the condition reference table in this file
+5. Implement `matches(RuntimeState)` on the condition
+6. Implement `contributeRequirements(RuntimeConditionRequirements.Builder)` on the condition
+7. If it needs a new runtime source, extend `RuntimeConditionTracker` and the relevant `runtime/state/*` slice
+8. Add tests for serialization, evaluation, and requirement collection
+9. Add a row to the condition reference table in this file
 
 ## Key RuneLite APIs
 
@@ -446,7 +466,7 @@ From `docs/runelite-wiki/code-conventions.md`:
 - All overlays must be registered in `startUp()` and unregistered in `shutDown()` - not optional
 - The plugin panel must be added to `ClientToolbar` in `startUp()` and removed in `shutDown()`
 - Game state may **only** be accessed from the client thread; schedule work with `clientThread.invokeLater()` if needed outside event handlers
-- Prefer event-driven re-evaluation over polling once runtime wiring is added
+- Prefer event-driven state updates over polling; `RuntimeConditionTracker` should only subscribe/update what enabled rules require
 - Do not put direct RuneLite API calls into persisted model classes; keep them in runtime evaluators/controllers only
 
 **Code:**

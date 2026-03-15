@@ -23,9 +23,6 @@ import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
 public class StrongBuffsPlugin extends Plugin
 {
 	@Inject
-	private StrongBuffsConfig config;
-
-	@Inject
 	private ClientToolbar clientToolbar;
 
 	@Inject

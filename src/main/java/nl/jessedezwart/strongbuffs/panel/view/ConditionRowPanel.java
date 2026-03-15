@@ -8,6 +8,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,8 +49,14 @@ public class ConditionRowPanel extends JPanel
 		header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		header.setAlignmentX(LEFT_ALIGNMENT);
 
-		JComboBox<Class<? extends ConditionDefinition>> typeComboBox = new JComboBox<>(
-				conditionRegistry.getConditionClasses().toArray(new Class[0]));
+		DefaultComboBoxModel<Class<? extends ConditionDefinition>> typeModel = new DefaultComboBoxModel<>();
+
+		for (Class<? extends ConditionDefinition> conditionClass : conditionRegistry.getConditionClasses())
+		{
+			typeModel.addElement(conditionClass);
+		}
+
+		JComboBox<Class<? extends ConditionDefinition>> typeComboBox = new JComboBox<>(typeModel);
 		typeComboBox.setRenderer((list, value, index, isSelected,
 				cellHasFocus) -> new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
 						value == null ? "" : conditionRegistry.getByConditionClass(value).getEditorLabel(), index,
@@ -59,8 +66,9 @@ public class ConditionRowPanel extends JPanel
 		typeComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, typeComboBox.getPreferredSize().height));
 		typeComboBox.addActionListener(event ->
 		{
-			Class<? extends ConditionDefinition> selectedClass = (Class<? extends ConditionDefinition>) typeComboBox
-					.getSelectedItem();
+			int selectedIndex = typeComboBox.getSelectedIndex();
+			Class<? extends ConditionDefinition> selectedClass = selectedIndex < 0 ? null
+					: typeModel.getElementAt(selectedIndex);
 			Class<? extends ConditionDefinition> currentClass = condition.getClass()
 					.asSubclass(ConditionDefinition.class);
 
