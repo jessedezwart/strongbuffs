@@ -2,7 +2,7 @@
 
 A [RuneLite](https://runelite.net) Plugin Hub plugin that brings WeakAuras-style conditional overlays to Old School RuneScape.
 
-Define **Auras** — visual and audio indicators that activate when configurable in-game conditions are met. Instead of hardcoded overlays that always show, Auras only fire when the player decides they should.
+Define **Rules** — visual and audio indicators that activate when configurable in-game conditions are met. Instead of hardcoded overlays that always show, Rules only fire when the player decides they should.
 
 **Examples:**
 - Flash the screen red when HP drops below 30%
@@ -43,9 +43,5 @@ AI-generated code carries the same responsibility as hand-written code. "The AI 
 - Confirm it follows the code conventions in `docs/runelite-wiki/code-conventions.md`
 
 AI is a productivity tool, not a substitute for review.
-
-## License
-
-BSD 2-Clause. See [LICENSE](LICENSE).
 
 This project is not affiliated with Jagex Ltd. or RuneLite.
