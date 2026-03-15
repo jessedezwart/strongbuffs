@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import net.runelite.api.Prayer;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 public class VarRuntimeState
 {

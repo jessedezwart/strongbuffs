@@ -8,14 +8,15 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
+import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import net.runelite.client.ui.ColorScheme;
 
 /**
@@ -26,17 +27,25 @@ public class ConditionEditorRegistry
 {
 	private final List<Class<? extends ConditionDefinition>> conditionClasses;
 	private final Map<Class<? extends ConditionDefinition>, ConditionDefinition> metadataByClass;
+	private final DefinitionCatalog definitionCatalog;
 
 	public ConditionEditorRegistry()
 	{
-		List<Class<? extends ConditionDefinition>> items = loadConditionClasses();
+		this(new DefaultDefinitionCatalog());
+	}
+
+	@Inject
+	public ConditionEditorRegistry(DefinitionCatalog definitionCatalog)
+	{
+		this.definitionCatalog = definitionCatalog;
+		List<Class<? extends ConditionDefinition>> items = loadConditionClasses(definitionCatalog);
 		conditionClasses = Collections.unmodifiableList(items);
 
 		Map<Class<? extends ConditionDefinition>, ConditionDefinition> byClass = new LinkedHashMap<>();
 
 		for (Class<? extends ConditionDefinition> conditionClass : items)
 		{
-			byClass.put(conditionClass, DefinitionRegistry.getConditionMetadata(conditionClass));
+			byClass.put(conditionClass, definitionCatalog.getConditionMetadata(conditionClass));
 		}
 
 		metadataByClass = Collections.unmodifiableMap(byClass);
@@ -54,7 +63,7 @@ public class ConditionEditorRegistry
 
 	public ConditionDefinition createDefaultCondition(Class<? extends ConditionDefinition> conditionClass)
 	{
-		return DefinitionRegistry.createCondition(conditionClass);
+		return definitionCatalog.createCondition(conditionClass);
 	}
 
 	public ConditionDefinition copy(ConditionDefinition conditionDefinition)
@@ -116,13 +125,13 @@ public class ConditionEditorRegistry
 		return panel;
 	}
 
-	private static List<Class<? extends ConditionDefinition>> loadConditionClasses()
+	private static List<Class<? extends ConditionDefinition>> loadConditionClasses(DefinitionCatalog definitionCatalog)
 	{
 		List<Class<? extends ConditionDefinition>> items =
-			new ArrayList<>(RuleDefinitionStore.getSupportedConditionDefinitionClasses());
+			new ArrayList<>(definitionCatalog.getConditionDefinitions());
 
 		items.sort(Comparator.comparing(conditionClass ->
-			DefinitionRegistry.getConditionMetadata(conditionClass).getEditorLabel()));
+			definitionCatalog.getConditionMetadata(conditionClass).getEditorLabel()));
 
 		if (items.isEmpty())
 		{

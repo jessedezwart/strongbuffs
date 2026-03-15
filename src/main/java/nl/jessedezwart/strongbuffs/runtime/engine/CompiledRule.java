@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.engine;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -7,6 +7,8 @@ import lombok.Getter;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 @Getter
 public class CompiledRule

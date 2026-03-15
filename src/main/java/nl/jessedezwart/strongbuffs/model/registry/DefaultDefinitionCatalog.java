@@ -6,12 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
-import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemCountCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemEquippedCondition;
@@ -27,67 +28,69 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.SlayerTaskCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 
-/**
- * Central registry for approved persisted condition and action model types.
- */
-public final class DefinitionRegistry
+@Singleton
+public class DefaultDefinitionCatalog implements DefinitionCatalog
 {
-	private static final List<DefinitionRegistration<? extends ConditionDefinition>> CONDITION_DEFINITIONS =
+	private final List<DefinitionRegistration<? extends ConditionDefinition>> conditionDefinitions =
 		createConditionDefinitions();
-	private static final List<DefinitionRegistration<? extends ActionDefinition>> ACTION_DEFINITIONS =
+	private final List<DefinitionRegistration<? extends ActionDefinition>> actionDefinitions =
 		createActionDefinitions();
-	private static final Map<Class<? extends ConditionDefinition>, DefinitionRegistration<? extends ConditionDefinition>>
-		CONDITION_DEFINITIONS_BY_CLASS = indexByClass(CONDITION_DEFINITIONS);
-	private static final Map<Class<? extends ActionDefinition>, DefinitionRegistration<? extends ActionDefinition>>
-		ACTION_DEFINITIONS_BY_CLASS = indexByClass(ACTION_DEFINITIONS);
-	private static final Map<String, DefinitionRegistration<? extends ConditionDefinition>> CONDITION_DEFINITIONS_BY_TYPE =
-		indexConditionTypeId(CONDITION_DEFINITIONS);
-	private static final Map<String, DefinitionRegistration<? extends ActionDefinition>> ACTION_DEFINITIONS_BY_TYPE =
-		indexActionTypeId(ACTION_DEFINITIONS);
+	private final Map<Class<? extends ConditionDefinition>, DefinitionRegistration<? extends ConditionDefinition>>
+		conditionDefinitionsByClass = indexByClass(conditionDefinitions);
+	private final Map<Class<? extends ActionDefinition>, DefinitionRegistration<? extends ActionDefinition>>
+		actionDefinitionsByClass = indexByClass(actionDefinitions);
+	private final Map<String, DefinitionRegistration<? extends ConditionDefinition>> conditionDefinitionsByType =
+		indexConditionTypeId(conditionDefinitions);
+	private final Map<String, DefinitionRegistration<? extends ActionDefinition>> actionDefinitionsByType =
+		indexActionTypeId(actionDefinitions);
 
-	private DefinitionRegistry()
+	@Override
+	public List<Class<? extends ConditionDefinition>> getConditionDefinitions()
 	{
+		return toClassList(conditionDefinitions);
 	}
 
-	public static List<Class<? extends ConditionDefinition>> getConditionDefinitions()
+	@Override
+	public List<Class<? extends ActionDefinition>> getActionDefinitions()
 	{
-		return toClassList(CONDITION_DEFINITIONS);
+		return toClassList(actionDefinitions);
 	}
 
-	public static List<Class<? extends ActionDefinition>> getActionDefinitions()
+	@Override
+	public ConditionDefinition getConditionMetadata(Class<? extends ConditionDefinition> definitionClass)
 	{
-		return toClassList(ACTION_DEFINITIONS);
+		return requireRegistration(conditionDefinitionsByClass, definitionClass, "condition").getMetadata();
 	}
 
-	public static ConditionDefinition getConditionMetadata(Class<? extends ConditionDefinition> definitionClass)
+	@Override
+	public ActionDefinition getActionMetadata(Class<? extends ActionDefinition> definitionClass)
 	{
-		return requireRegistration(CONDITION_DEFINITIONS_BY_CLASS, definitionClass, "condition").getMetadata();
+		return requireRegistration(actionDefinitionsByClass, definitionClass, "action").getMetadata();
 	}
 
-	public static ActionDefinition getActionMetadata(Class<? extends ActionDefinition> definitionClass)
+	@Override
+	public Class<? extends ConditionDefinition> getConditionDefinitionClass(String typeId)
 	{
-		return requireRegistration(ACTION_DEFINITIONS_BY_CLASS, definitionClass, "action").getMetadata();
+		return requireRegistration(conditionDefinitionsByType, typeId, "condition").getDefinitionClass();
 	}
 
-	public static Class<? extends ConditionDefinition> getConditionDefinitionClass(String typeId)
+	@Override
+	public Class<? extends ActionDefinition> getActionDefinitionClass(String typeId)
 	{
-		return requireRegistration(CONDITION_DEFINITIONS_BY_TYPE, typeId, "condition").getDefinitionClass();
+		return requireRegistration(actionDefinitionsByType, typeId, "action").getDefinitionClass();
 	}
 
-	public static Class<? extends ActionDefinition> getActionDefinitionClass(String typeId)
+	@Override
+	public <T extends ConditionDefinition> T createCondition(Class<T> definitionClass)
 	{
-		return requireRegistration(ACTION_DEFINITIONS_BY_TYPE, typeId, "action").getDefinitionClass();
-	}
-
-	public static <T extends ConditionDefinition> T createCondition(Class<T> definitionClass)
-	{
-		return definitionClass.cast(requireRegistration(CONDITION_DEFINITIONS_BY_CLASS, definitionClass, "condition")
+		return definitionClass.cast(requireRegistration(conditionDefinitionsByClass, definitionClass, "condition")
 			.create());
 	}
 
-	public static <T extends ActionDefinition> T createAction(Class<T> definitionClass)
+	@Override
+	public <T extends ActionDefinition> T createAction(Class<T> definitionClass)
 	{
-		return definitionClass.cast(requireRegistration(ACTION_DEFINITIONS_BY_CLASS, definitionClass, "action")
+		return definitionClass.cast(requireRegistration(actionDefinitionsByClass, definitionClass, "action")
 			.create());
 	}
 

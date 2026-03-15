@@ -1,11 +1,6 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.state;
 
 import lombok.Getter;
-import nl.jessedezwart.strongbuffs.runtime.state.GroundItemRuntimeState;
-import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
-import nl.jessedezwart.strongbuffs.runtime.state.LocationRuntimeState;
-import nl.jessedezwart.strongbuffs.runtime.state.SkillRuntimeState;
-import nl.jessedezwart.strongbuffs.runtime.state.VarRuntimeState;
 
 @Getter
 public class RuntimeState

@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -87,18 +85,6 @@ public class ItemCountCondition extends NumericConditionDefinition
 	protected NumericConditionDefinition createCopy()
 	{
 		return new ItemCountCondition();
-	}
-
-	@Override
-	protected int getValue(RuntimeState state)
-	{
-		return state.getInventory().getInventoryItemCount(itemName);
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requireInventoryItem(itemName);
 	}
 
 	@Override

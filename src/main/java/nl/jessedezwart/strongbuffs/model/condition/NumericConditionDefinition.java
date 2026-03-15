@@ -6,7 +6,6 @@ import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -69,14 +68,6 @@ public abstract class NumericConditionDefinition extends ConditionDefinition
 				getMaximumValue() + ".");
 		}
 	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		return state != null && operator != null && operator.matches(getValue(state), threshold);
-	}
-
-	protected abstract int getValue(RuntimeState state);
 
 	protected final void copyTo(NumericConditionDefinition copy)
 	{

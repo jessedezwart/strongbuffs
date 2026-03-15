@@ -9,8 +9,6 @@ import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionEditorOptions;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -43,18 +41,6 @@ public class XpGainCondition extends ConditionDefinition
 	{
 		return Arrays.asList(EditorField.choice("skill", "Skill", this::getSkill, this::setSkill,
 			ConditionEditorOptions.getSkills(), Skill::getName));
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		return state != null && state.getSkills().hasXpGain(skill);
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requireXpGainSkill(skill);
 	}
 
 	@Override

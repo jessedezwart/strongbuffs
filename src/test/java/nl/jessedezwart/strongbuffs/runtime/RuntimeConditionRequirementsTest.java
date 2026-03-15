@@ -17,10 +17,16 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeRegistry;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirementCollector;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 import org.junit.Test;
 
 public class RuntimeConditionRequirementsTest
 {
+	private final RuntimeConditionRequirementCollector requirementCollector =
+		new RuntimeConditionRequirementCollector(new ConditionRuntimeRegistry());
+
 	@Test
 	public void collectsRequirementsFromConditionImplementations()
 	{
@@ -55,8 +61,7 @@ public class RuntimeConditionRequirementsTest
 		disabledRule.setEnabled(false);
 		disabledRule.getRootGroup().getChildren().add(new HpCondition());
 
-		RuntimeConditionRequirements requirements = RuntimeConditionRequirements.fromRules(Arrays.asList(enabledRule,
-			disabledRule));
+		RuntimeConditionRequirements requirements = requirementCollector.fromRules(Arrays.asList(enabledRule, disabledRule));
 
 		assertTrue(requirements.tracksHitpoints());
 		assertFalse(requirements.tracksPrayerPoints());

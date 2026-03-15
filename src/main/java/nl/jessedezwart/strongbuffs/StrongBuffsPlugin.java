@@ -15,7 +15,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
-import nl.jessedezwart.strongbuffs.runtime.RuleRuntimeController;
+import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 
 @Slf4j
 @PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =

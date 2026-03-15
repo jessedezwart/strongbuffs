@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -41,33 +39,6 @@ public class PoisonCondition extends ConditionDefinition
 	{
 		return Arrays.asList(EditorField.choice("poisonType", "Type", this::getPoisonType, this::setPoisonType,
 			Arrays.asList(PoisonType.values()), PoisonType::getEditorLabel));
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		if (state == null || poisonType == null)
-		{
-			return false;
-		}
-
-		switch (poisonType)
-		{
-			case POISON:
-				return state.getVars().getPoisonState() == RuntimeState.PoisonState.POISON;
-			case VENOM:
-				return state.getVars().getPoisonState() == RuntimeState.PoisonState.VENOM;
-			case POISON_OR_VENOM:
-				return state.getVars().getPoisonState() != RuntimeState.PoisonState.NONE;
-			default:
-				return false;
-		}
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requirePoison();
 	}
 
 	@Override

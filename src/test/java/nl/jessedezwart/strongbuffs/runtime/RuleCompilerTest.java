@@ -11,6 +11,9 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRuleSet;
+import nl.jessedezwart.strongbuffs.runtime.engine.RuleCompiler;
+import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 import org.junit.Test;
 
 public class RuleCompilerTest

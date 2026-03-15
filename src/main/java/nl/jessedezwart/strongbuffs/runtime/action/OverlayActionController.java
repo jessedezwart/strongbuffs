@@ -8,8 +8,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
-import nl.jessedezwart.strongbuffs.runtime.CompiledRule;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
+import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 @Singleton
 public class OverlayActionController
@@ -17,15 +17,16 @@ public class OverlayActionController
 	private static final long TRANSIENT_DURATION_MILLIS = 1800L;
 
 	private final RuntimeOverlay runtimeOverlay;
-	private final RuntimeValueFormatter runtimeValueFormatter = new RuntimeValueFormatter();
+	private final RuntimeValueFormatter runtimeValueFormatter;
 
 	private final Map<String, RuntimeOverlay.TextEntry> persistentEntries = new LinkedHashMap<>();
 	private final Map<String, RuntimeOverlay.TextEntry> transientEntries = new LinkedHashMap<>();
 
 	@Inject
-	public OverlayActionController(RuntimeOverlay runtimeOverlay)
+	public OverlayActionController(RuntimeOverlay runtimeOverlay, RuntimeValueFormatter runtimeValueFormatter)
 	{
 		this.runtimeOverlay = runtimeOverlay;
+		this.runtimeValueFormatter = runtimeValueFormatter;
 	}
 
 	public void showPersistent(CompiledRule rule, OverlayTextAction action, RuntimeState runtimeState)

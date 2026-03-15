@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
@@ -21,11 +20,14 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
+import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import org.junit.Test;
 
 public class RuleDefinitionStoreTest
 {
 	private final RuleDefinitionStore store = new RuleDefinitionStore(null);
+	private final DefinitionCatalog definitionCatalog = new DefaultDefinitionCatalog();
 
 	@Test
 	public void serializeAndDeserializeRoundTripsTypedDefinitions()
@@ -132,9 +134,9 @@ public class RuleDefinitionStoreTest
 
 		ConditionGroup rootGroup = new ConditionGroup();
 
-		for (Class<? extends ConditionDefinition> conditionClass : DefinitionRegistry.getConditionDefinitions())
+		for (Class<? extends ConditionDefinition> conditionClass : definitionCatalog.getConditionDefinitions())
 		{
-			ConditionDefinition definition = DefinitionRegistry.createCondition(conditionClass);
+			ConditionDefinition definition = definitionCatalog.createCondition(conditionClass);
 
 			if (definition instanceof ItemInInventoryCondition)
 			{
@@ -152,7 +154,7 @@ public class RuleDefinitionStoreTest
 
 		assertEquals(1, restored.size());
 		assertEquals(
-			DefinitionRegistry.getConditionDefinitions().stream().map(Class::getName).collect(Collectors.toList()),
+			definitionCatalog.getConditionDefinitions().stream().map(Class::getName).collect(Collectors.toList()),
 			restored.get(0).getRootGroup().getChildren().stream().map(child -> child.getClass().getName())
 				.collect(Collectors.toList()));
 	}
@@ -169,9 +171,10 @@ public class RuleDefinitionStoreTest
 		String serialized = store.serialize(Arrays.asList(null, rule));
 		List<RuleDefinition> restored = store.deserialize(serialized);
 
-		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, rule.getSchemaVersion());
+		assertEquals(0, rule.getSchemaVersion());
 		assertFalse(serialized.contains("null"));
 		assertEquals(1, restored.size());
+		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, restored.get(0).getSchemaVersion());
 		assertEquals("only-rule", restored.get(0).getId());
 	}
 

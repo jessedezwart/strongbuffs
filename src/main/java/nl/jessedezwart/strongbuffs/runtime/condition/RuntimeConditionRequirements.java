@@ -1,16 +1,11 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.condition;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
-import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
-import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
 
 public final class RuntimeConditionRequirements
@@ -56,26 +51,6 @@ public final class RuntimeConditionRequirements
 	public static RuntimeConditionRequirements empty()
 	{
 		return EMPTY;
-	}
-
-	public static RuntimeConditionRequirements fromRules(List<RuleDefinition> rules)
-	{
-		Builder builder = builder();
-
-		if (rules != null)
-		{
-			for (RuleDefinition rule : rules)
-			{
-				if (rule == null || !rule.isEnabled() || rule.getRootGroup() == null)
-				{
-					continue;
-				}
-
-				collect(rule.getRootGroup(), builder);
-			}
-		}
-
-		return builder.build();
 	}
 
 	public static Builder builder()
@@ -171,21 +146,6 @@ public final class RuntimeConditionRequirements
 	public boolean hasGroundItemTracking()
 	{
 		return !groundItems.isEmpty();
-	}
-
-	private static void collect(ConditionGroup group, Builder builder)
-	{
-		for (ConditionNode child : group.getChildren())
-		{
-			if (child instanceof ConditionGroup)
-			{
-				collect((ConditionGroup) child, builder);
-			}
-			else if (child instanceof ConditionDefinition)
-			{
-				((ConditionDefinition) child).contributeRequirements(builder);
-			}
-		}
 	}
 
 	public static final class Builder
@@ -306,6 +266,86 @@ public final class RuntimeConditionRequirements
 			return new RuntimeConditionRequirements(hitpoints, prayerPoints, specialAttack, runEnergy, poison,
 				slayerTask, playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
 				new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems), new LinkedHashSet<>(groundItems));
+		}
+
+		public Builder merge(RuntimeConditionRequirements requirements)
+		{
+			if (requirements == null)
+			{
+				return this;
+			}
+
+			if (requirements.tracksHitpoints())
+			{
+				requireHitpoints();
+			}
+
+			if (requirements.tracksPrayerPoints())
+			{
+				requirePrayerPoints();
+			}
+
+			if (requirements.tracksSpecialAttack())
+			{
+				requireSpecialAttack();
+			}
+
+			if (requirements.tracksRunEnergy())
+			{
+				requireRunEnergy();
+			}
+
+			if (requirements.tracksPoison())
+			{
+				requirePoison();
+			}
+
+			if (requirements.tracksSlayerTask())
+			{
+				requireSlayerTask();
+			}
+
+			if (requirements.tracksPlayerLocation())
+			{
+				requirePlayerLocation();
+			}
+
+			if (requirements.tracksPlayerInstance())
+			{
+				requirePlayerInstance();
+			}
+
+			for (Prayer prayer : requirements.getPrayers())
+			{
+				requirePrayer(prayer);
+			}
+
+			for (Skill skill : requirements.getRealSkills())
+			{
+				requireRealSkill(skill);
+			}
+
+			for (Skill skill : requirements.getXpGainSkills())
+			{
+				requireXpGainSkill(skill);
+			}
+
+			for (String itemName : requirements.getInventoryItems())
+			{
+				requireInventoryItem(itemName);
+			}
+
+			for (String itemName : requirements.getEquippedItems())
+			{
+				requireEquippedItem(itemName);
+			}
+
+			for (String itemName : requirements.getGroundItems())
+			{
+				requireGroundItem(itemName);
+			}
+
+			return this;
 		}
 
 		private static void addName(Set<String> target, String value)

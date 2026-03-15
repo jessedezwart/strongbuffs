@@ -16,20 +16,15 @@ import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
-import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import org.junit.Test;
 
 public class RulePanelControllerTest
 {
-	private final ConditionEditorRegistry conditionRegistry = new ConditionEditorRegistry();
-	private final ActionEditorRegistry actionRegistry = new ActionEditorRegistry();
-
 	@Test
 	public void createRuleRequiresValidDraftBeforeSaving()
 	{
 		RecordingStore store = new RecordingStore(Collections.emptyList());
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = createController(store);
 
 		controller.requestCreateRule();
 
@@ -52,7 +47,7 @@ public class RulePanelControllerTest
 	public void unsavedSelectionChangeCanDiscardPendingChanges()
 	{
 		RecordingStore store = new RecordingStore(List.of(createRule("a", "First"), createRule("b", "Second")));
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = createController(store);
 
 		controller.requestSelectRule("a");
 		controller.getDraft().setName("Changed");
@@ -70,7 +65,7 @@ public class RulePanelControllerTest
 	public void duplicateCreatesUnsavedCopyWithNewIdentity()
 	{
 		RecordingStore store = new RecordingStore(List.of(createRule("a", "First")));
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = createController(store);
 
 		controller.requestSelectRule("a");
 		controller.requestDuplicateSelectedRule();
@@ -86,7 +81,7 @@ public class RulePanelControllerTest
 	public void cancelOnUnsavedDraftClearsSelection()
 	{
 		RecordingStore store = new RecordingStore(Collections.emptyList());
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = createController(store);
 
 		controller.requestCreateRule();
 		controller.cancelDraft();
@@ -99,7 +94,7 @@ public class RulePanelControllerTest
 	public void deleteRemovesPersistedRule()
 	{
 		RecordingStore store = new RecordingStore(List.of(createRule("a", "First")));
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = createController(store);
 
 		controller.requestSelectRule("a");
 		controller.requestDeleteSelectedRule();
@@ -131,6 +126,12 @@ public class RulePanelControllerTest
 		condition.setOperator(ComparisonOperator.LESS_THAN_OR_EQUAL);
 		condition.setThreshold(threshold);
 		return condition;
+	}
+
+	private static RulePanelController createController(RuleDefinitionStore store)
+	{
+		return new RulePanelController(new RuleRepository(store), new RuleDraftSession(), new RuleDraftValidator(),
+			new UnsavedChangesGuard());
 	}
 
 	private static final class RecordingStore extends RuleDefinitionStore

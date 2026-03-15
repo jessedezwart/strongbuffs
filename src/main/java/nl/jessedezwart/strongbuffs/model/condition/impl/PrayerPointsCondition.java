@@ -3,8 +3,6 @@ package nl.jessedezwart.strongbuffs.model.condition.impl;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @EqualsAndHashCode(callSuper = true)
 public class PrayerPointsCondition extends NumericConditionDefinition
@@ -42,18 +40,6 @@ public class PrayerPointsCondition extends NumericConditionDefinition
 	protected NumericConditionDefinition createCopy()
 	{
 		return new PrayerPointsCondition();
-	}
-
-	@Override
-	protected int getValue(RuntimeState state)
-	{
-		return state.getSkills().getPrayerPoints();
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requirePrayerPoints();
 	}
 
 	@Override

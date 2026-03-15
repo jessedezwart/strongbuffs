@@ -12,6 +12,12 @@ import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.action.ActionDispatcher;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionChecker;
+import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
+import nl.jessedezwart.strongbuffs.runtime.engine.RuleCompiler;
+import nl.jessedezwart.strongbuffs.runtime.engine.RuleEngine;
+import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 import org.junit.Test;
 
 public class RuleEngineTest
@@ -108,7 +114,7 @@ public class RuleEngineTest
 
 		private RecordingActionDispatcher()
 		{
-			super(null, null, null, null, null);
+			super(null, null, null);
 		}
 
 		@Override

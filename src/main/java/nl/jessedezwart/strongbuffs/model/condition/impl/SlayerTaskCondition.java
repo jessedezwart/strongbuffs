@@ -9,8 +9,6 @@ import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -97,34 +95,6 @@ public class SlayerTaskCondition extends NumericConditionDefinition
 	protected NumericConditionDefinition createCopy()
 	{
 		return new SlayerTaskCondition();
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		if (state == null || check == null)
-		{
-			return false;
-		}
-
-		if (check == SlayerTaskCheck.TASK_ACTIVE)
-		{
-			return state.getVars().isSlayerTaskActive();
-		}
-
-		return super.matches(state);
-	}
-
-	@Override
-	protected int getValue(RuntimeState state)
-	{
-		return state.getVars().getSlayerTaskRemaining();
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requireSlayerTask();
 	}
 
 	@Override

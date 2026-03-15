@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.engine;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 public class RuleTriggerIndex
 {

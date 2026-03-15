@@ -9,8 +9,6 @@ import net.runelite.api.Prayer;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionEditorOptions;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -47,18 +45,6 @@ public class PrayerActiveCondition extends ConditionDefinition
 			EditorField.choice("prayer", "Prayer", this::getPrayer, this::setPrayer, ConditionEditorOptions.getPrayers(),
 				PrayerActiveCondition::formatPrayer),
 			EditorField.checkbox("active", "Active", this::isActive, this::setActive));
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		return state != null && active == state.getVars().isPrayerActive(prayer);
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requirePrayer(prayer);
 	}
 
 	@Override

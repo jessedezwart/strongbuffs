@@ -1,9 +1,10 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.engine;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 
 @Getter
 public class CompiledRuleSet

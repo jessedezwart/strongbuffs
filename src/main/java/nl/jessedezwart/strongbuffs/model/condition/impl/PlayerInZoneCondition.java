@@ -7,9 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
-import net.runelite.api.coords.WorldPoint;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -55,34 +52,6 @@ public class PlayerInZoneCondition extends ConditionDefinition
 			EditorField.spinner("northEastX", "NE X", this::getNorthEastX, this::setNorthEastX, 0, 20000, 1, ""),
 			EditorField.spinner("northEastY", "NE Y", this::getNorthEastY, this::setNorthEastY, 0, 20000, 1, ""),
 			EditorField.spinner("plane", "Plane", this::getPlane, this::setPlane, 0, 3, 1, ""));
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		if (state == null)
-		{
-			return false;
-		}
-
-		WorldPoint playerLocation = state.getLocation().getPlayerLocation();
-
-		if (playerLocation == null)
-		{
-			return false;
-		}
-
-		return playerLocation.getPlane() == plane &&
-			playerLocation.getX() >= southWestX &&
-			playerLocation.getX() <= northEastX &&
-			playerLocation.getY() >= southWestY &&
-			playerLocation.getY() <= northEastY;
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requirePlayerLocation();
 	}
 
 	@Override

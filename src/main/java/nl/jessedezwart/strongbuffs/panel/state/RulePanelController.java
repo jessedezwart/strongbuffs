@@ -1,27 +1,14 @@
 package nl.jessedezwart.strongbuffs.panel.state;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
-import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
-import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.runtime.RuleRuntimeController;
 
 /**
- * Owns persisted rule snapshots, the currently selected draft, validation, and unsaved-changes resolution.
+ * Thin facade over repository, draft-session, validation, and unsaved-changes
+ * services for the Swing panel.
  */
 @Singleton
 public class RulePanelController
@@ -32,74 +19,45 @@ public class RulePanelController
 	public static final String FIELD_ACTION_TEXT = "action.text";
 	public static final String FIELD_ACTION_COLOR = "action.color";
 
-	private final RuleDefinitionStore store;
-	private final RuleRuntimeController ruleRuntimeController;
+	private final RuleRepository repository;
+	private final RuleDraftSession draftSession;
+	private final RuleDraftValidator draftValidator;
+	private final UnsavedChangesGuard unsavedChangesGuard;
 
-	private final List<RuleDefinition> persistedRules = new ArrayList<>();
-
-	private RuleDraft draft;
-	private String selectedRuleId;
 	private RuleValidationResult validationResult = RuleValidationResult.valid();
-	private PendingAction pendingAction;
-
-	public RulePanelController(RuleDefinitionStore store, ConditionEditorRegistry conditionRegistry,
-		ActionEditorRegistry actionRegistry)
-	{
-		this(store, conditionRegistry, actionRegistry, null);
-	}
 
 	@Inject
-	public RulePanelController(RuleDefinitionStore store, ConditionEditorRegistry conditionRegistry,
-		ActionEditorRegistry actionRegistry, RuleRuntimeController ruleRuntimeController)
+	public RulePanelController(RuleRepository repository, RuleDraftSession draftSession,
+		RuleDraftValidator draftValidator, UnsavedChangesGuard unsavedChangesGuard)
 	{
-		this.store = store;
-		this.ruleRuntimeController = ruleRuntimeController;
+		this.repository = repository;
+		this.draftSession = draftSession;
+		this.draftValidator = draftValidator;
+		this.unsavedChangesGuard = unsavedChangesGuard;
 		reload();
 	}
 
 	public void reload()
 	{
-		persistedRules.clear();
-		persistedRules.addAll(store.load());
-		synchronizeRuntimeTracker();
-		draft = null;
-		selectedRuleId = null;
+		repository.reload();
+		draftSession.clear();
 		validationResult = RuleValidationResult.valid();
-		pendingAction = null;
+		unsavedChangesGuard.clear();
 	}
 
 	public List<RuleDefinition> getVisibleRules()
 	{
-		List<RuleDefinition> visible = new ArrayList<>(persistedRules);
-
-		if (draft == null)
-		{
-			return Collections.unmodifiableList(visible);
-		}
-
-		RuleDefinition draftDefinition = draft.toRuleDefinition();
-		int existingIndex = indexOfRule(draftDefinition.getId());
-
-		if (existingIndex >= 0)
-		{
-			visible.set(existingIndex, draftDefinition);
-		}
-		else
-		{
-			visible.add(draftDefinition);
-		}
-
-		return Collections.unmodifiableList(visible);
+		return draftSession.getVisibleRules(repository.getAll());
 	}
 
 	public RuleDraft getDraft()
 	{
-		return draft;
+		return draftSession.getDraft();
 	}
 
 	public String getSelectedRuleId()
 	{
-		return selectedRuleId;
+		return draftSession.getSelectedRuleId();
 	}
 
 	public RuleValidationResult getValidationResult()
@@ -109,116 +67,78 @@ public class RulePanelController
 
 	public boolean hasUnsavedChanges()
 	{
-		if (draft == null)
-		{
-			return false;
-		}
-
-		if (draft.isNewRule())
-		{
-			return true;
-		}
-
-		RuleDefinition persisted = getPersistedRule(draft.getId());
-		return persisted == null || !Objects.equals(persisted, draft.toRuleDefinition());
+		RuleDraft draft = draftSession.getDraft();
+		return draft != null && draftSession.hasUnsavedChanges(repository.findById(draft.getId()));
 	}
 
 	public RuleControllerActionResult revalidateDraft()
 	{
-		validationResult = validateDraft();
-
-		if (validationResult.isValid())
-		{
-			return RuleControllerActionResult.applied();
-		}
-
-		return RuleControllerActionResult.validationFailed(validationResult);
+		validationResult = draftValidator.validate(draftSession.getDraft());
+		return validationResult.isValid()
+			? RuleControllerActionResult.applied()
+			: RuleControllerActionResult.validationFailed(validationResult);
 	}
 
 	public RuleControllerActionResult requestSelectRule(String ruleId)
 	{
-		if (Objects.equals(selectedRuleId, ruleId))
+		if (Objects.equals(getSelectedRuleId(), ruleId))
 		{
 			return RuleControllerActionResult.applied();
 		}
 
-		return runOrDefer(() -> selectRuleInternal(ruleId));
+		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), () -> selectRuleInternal(ruleId));
 	}
 
 	public RuleControllerActionResult requestCreateRule()
 	{
-		return runOrDefer(this::createRuleInternal);
+		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::createRuleInternal);
 	}
 
 	public RuleControllerActionResult requestDuplicateSelectedRule()
 	{
-		if (selectedRuleId == null)
+		if (getSelectedRuleId() == null)
 		{
 			return RuleControllerActionResult.applied();
 		}
 
-		return runOrDefer(this::duplicateSelectedRuleInternal);
+		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::duplicateSelectedRuleInternal);
 	}
 
 	public RuleControllerActionResult requestDeleteSelectedRule()
 	{
-		if (selectedRuleId == null)
+		if (getSelectedRuleId() == null)
 		{
 			return RuleControllerActionResult.applied();
 		}
 
-		if (draft != null && draft.isNewRule() && Objects.equals(draft.getId(), selectedRuleId))
+		RuleDraft draft = draftSession.getDraft();
+
+		if (draft != null && draft.isNewRule() && Objects.equals(draft.getId(), getSelectedRuleId()))
 		{
-			draft = null;
-			selectedRuleId = null;
+			draftSession.clear();
 			validationResult = RuleValidationResult.valid();
-			pendingAction = null;
+			unsavedChangesGuard.clear();
 			return RuleControllerActionResult.applied();
 		}
 
-		return runOrDefer(this::deleteSelectedRuleInternal);
+		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::deleteSelectedRuleInternal);
 	}
 
 	public RuleControllerActionResult resolvePendingAction(UnsavedResolution resolution)
 	{
-		if (pendingAction == null)
-		{
-			return RuleControllerActionResult.applied();
-		}
-
-		switch (resolution)
-		{
-			case CANCEL:
-				pendingAction = null;
-				return RuleControllerActionResult.applied();
-			case DISCARD:
-				discardDraft();
-				break;
-			case SAVE:
-				RuleControllerActionResult saveResult = saveDraft();
-
-				if (!saveResult.isSuccess())
-				{
-					return saveResult;
-				}
-				break;
-			default:
-				break;
-		}
-
-		PendingAction action = pendingAction;
-		pendingAction = null;
-		return action.run();
+		return unsavedChangesGuard.resolve(resolution, this::saveDraft, this::discardDraftInternal);
 	}
 
 	public RuleControllerActionResult saveDraft()
 	{
+		RuleDraft draft = draftSession.getDraft();
+
 		if (draft == null)
 		{
 			return RuleControllerActionResult.applied();
 		}
 
-		validationResult = validateDraft();
+		validationResult = draftValidator.validate(draft);
 
 		if (!validationResult.isValid())
 		{
@@ -227,279 +147,72 @@ public class RulePanelController
 
 		draft.setName(draft.getName().trim());
 		RuleDefinition savedRule = draft.toRuleDefinition();
-		int existingIndex = indexOfRule(savedRule.getId());
-
-		if (existingIndex >= 0)
-		{
-			persistedRules.set(existingIndex, savedRule);
-		}
-		else
-		{
-			persistedRules.add(savedRule);
-		}
-
-		store.save(new ArrayList<>(persistedRules));
-		synchronizeRuntimeTracker();
-		draft = RuleDraft.fromRuleDefinition(savedRule);
-		selectedRuleId = savedRule.getId();
+		repository.saveRule(savedRule);
+		draftSession.select(savedRule);
 		validationResult = RuleValidationResult.valid();
 		return RuleControllerActionResult.applied();
 	}
 
 	public void cancelDraft()
 	{
-		pendingAction = null;
-		discardDraft();
-	}
-
-	private void discardDraft()
-	{
-		if (draft == null)
-		{
-			return;
-		}
-
-		if (draft.isNewRule())
-		{
-			draft = null;
-			selectedRuleId = null;
-			validationResult = RuleValidationResult.valid();
-			return;
-		}
-
-		selectRuleInternal(draft.getId());
-	}
-
-	private RuleControllerActionResult runOrDefer(PendingAction action)
-	{
-		if (hasUnsavedChanges())
-		{
-			pendingAction = action;
-			return RuleControllerActionResult.unsavedConfirmationRequired();
-		}
-
-		pendingAction = null;
-		return action.run();
+		unsavedChangesGuard.clear();
+		discardDraftInternal();
 	}
 
 	private RuleControllerActionResult selectRuleInternal(String ruleId)
 	{
-		selectedRuleId = ruleId;
-		RuleDefinition ruleDefinition = getPersistedRule(ruleId);
-
-		if (ruleDefinition == null)
-		{
-			draft = null;
-			validationResult = RuleValidationResult.valid();
-			return RuleControllerActionResult.applied();
-		}
-
-		draft = RuleDraft.fromRuleDefinition(ruleDefinition);
+		draftSession.select(repository.findById(ruleId));
 		validationResult = RuleValidationResult.valid();
 		return RuleControllerActionResult.applied();
 	}
 
 	private RuleControllerActionResult createRuleInternal()
 	{
-		RuleDraft newDraft = new RuleDraft();
-		newDraft.setId(UUID.randomUUID().toString());
-		newDraft.setAction(new OverlayTextAction());
-		newDraft.setRootGroup(new ConditionGroup());
-		newDraft.setNewRule(true);
-		draft = newDraft;
-		selectedRuleId = newDraft.getId();
-		validationResult = validateDraft();
+		draftSession.createNew();
+		validationResult = draftValidator.validate(draftSession.getDraft());
 		return RuleControllerActionResult.applied();
 	}
 
 	private RuleControllerActionResult duplicateSelectedRuleInternal()
 	{
-		RuleDefinition source = getSelectedRuleSnapshot();
-
-		if (source == null)
-		{
-			return RuleControllerActionResult.applied();
-		}
-
-		RuleDraft duplicated = RuleDraft.fromRuleDefinition(source);
-		duplicated.setId(UUID.randomUUID().toString());
-		duplicated.setName(buildDuplicateName(source.getName()));
-		duplicated.setNewRule(true);
-		draft = duplicated;
-		selectedRuleId = duplicated.getId();
-		validationResult = validateDraft();
+		draftSession.duplicate(getSelectedRuleSnapshot());
+		validationResult = draftValidator.validate(draftSession.getDraft());
 		return RuleControllerActionResult.applied();
 	}
 
 	private RuleControllerActionResult deleteSelectedRuleInternal()
 	{
-		int existingIndex = indexOfRule(selectedRuleId);
+		repository.deleteRule(getSelectedRuleId());
+		draftSession.clear();
+		validationResult = RuleValidationResult.valid();
+		return RuleControllerActionResult.applied();
+	}
 
-		if (existingIndex < 0)
+	private RuleControllerActionResult discardDraftInternal()
+	{
+		RuleDraft draft = draftSession.getDraft();
+
+		if (draft == null)
 		{
 			return RuleControllerActionResult.applied();
 		}
 
-		persistedRules.remove(existingIndex);
-		store.save(new ArrayList<>(persistedRules));
-		synchronizeRuntimeTracker();
-		draft = null;
-		selectedRuleId = null;
+		if (draft.isNewRule())
+		{
+			draftSession.clear();
+		}
+		else
+		{
+			draftSession.select(repository.findById(draft.getId()));
+		}
+
 		validationResult = RuleValidationResult.valid();
 		return RuleControllerActionResult.applied();
 	}
 
 	private RuleDefinition getSelectedRuleSnapshot()
 	{
-		if (draft != null)
-		{
-			return draft.toRuleDefinition();
-		}
-
-		return getPersistedRule(selectedRuleId);
-	}
-
-	private RuleDefinition getPersistedRule(String ruleId)
-	{
-		if (ruleId == null)
-		{
-			return null;
-		}
-
-		for (RuleDefinition ruleDefinition : persistedRules)
-		{
-			if (Objects.equals(ruleDefinition.getId(), ruleId))
-			{
-				return ruleDefinition;
-			}
-		}
-
-		return null;
-	}
-
-	private int indexOfRule(String ruleId)
-	{
-		for (int i = 0; i < persistedRules.size(); i++)
-		{
-			if (Objects.equals(persistedRules.get(i).getId(), ruleId))
-			{
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-	private RuleValidationResult validateDraft()
-	{
-		if (draft == null)
-		{
-			return RuleValidationResult.valid();
-		}
-
-		Map<String, String> errors = new LinkedHashMap<>();
-
-		if (draft.getName() == null || draft.getName().trim().isEmpty())
-		{
-			errors.put(FIELD_NAME, "Name is required.");
-		}
-
-		if (!hasLeafCondition(draft.getRootGroup()))
-		{
-			errors.put(FIELD_CONDITIONS, "Add at least one condition.");
-		}
-		else
-		{
-			String conditionError = validateConditions(draft.getRootGroup());
-
-			if (conditionError != null)
-			{
-				errors.put(FIELD_CONDITIONS, conditionError);
-			}
-		}
-
-		if (draft.getCooldownTicks() < 0)
-		{
-			errors.put("activation.cooldownTicks", "Cooldown must be zero or higher.");
-		}
-
-		validateAction(errors, draft.getAction());
-		return RuleValidationResult.of(errors);
-	}
-
-	private static String validateConditions(ConditionGroup group)
-	{
-		for (ConditionNode child : group.getChildren())
-		{
-			if (child instanceof ConditionGroup)
-			{
-				String nestedError = validateConditions((ConditionGroup) child);
-
-				if (nestedError != null)
-				{
-					return nestedError;
-				}
-
-				continue;
-			}
-
-			Map<String, String> conditionErrors = new LinkedHashMap<>();
-			((ConditionDefinition) child).validate(conditionErrors, FIELD_CONDITIONS);
-
-			if (!conditionErrors.isEmpty())
-			{
-				return conditionErrors.values().iterator().next();
-			}
-		}
-
-		return null;
-	}
-
-	private void validateAction(Map<String, String> errors, ActionDefinition actionDefinition)
-	{
-		if (actionDefinition == null)
-		{
-			errors.put(FIELD_ACTION, "Choose an action.");
-			return;
-		}
-
-		actionDefinition.validate(errors, FIELD_ACTION);
-	}
-
-	private static boolean hasLeafCondition(ConditionGroup group)
-	{
-		for (ConditionNode child : group.getChildren())
-		{
-			if (child instanceof ConditionDefinition)
-			{
-				return true;
-			}
-
-			if (child instanceof ConditionGroup && hasLeafCondition((ConditionGroup) child))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private static String buildDuplicateName(String name)
-	{
-		String baseName = name == null || name.trim().isEmpty() ? "New Rule" : name.trim();
-		return baseName + " Copy";
-	}
-
-	private void synchronizeRuntimeTracker()
-	{
-		if (ruleRuntimeController != null)
-		{
-			ruleRuntimeController.setRules(new ArrayList<>(persistedRules));
-		}
-	}
-
-	private interface PendingAction
-	{
-		RuleControllerActionResult run();
+		RuleDraft draft = draftSession.getDraft();
+		return draft != null ? draft.toRuleDefinition() : repository.findById(getSelectedRuleId());
 	}
 }

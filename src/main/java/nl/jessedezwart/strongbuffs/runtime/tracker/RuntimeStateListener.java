@@ -1,6 +1,7 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.tracker;
 
 import java.util.Set;
+import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public interface RuntimeStateListener
 {

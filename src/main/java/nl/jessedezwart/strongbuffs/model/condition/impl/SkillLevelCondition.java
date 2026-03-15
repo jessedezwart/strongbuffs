@@ -10,8 +10,6 @@ import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionEditorOptions;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -90,18 +88,6 @@ public class SkillLevelCondition extends NumericConditionDefinition
 	protected NumericConditionDefinition createCopy()
 	{
 		return new SkillLevelCondition();
-	}
-
-	@Override
-	protected int getValue(RuntimeState state)
-	{
-		return state.getSkills().getRealSkillLevel(skill);
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requireRealSkill(skill);
 	}
 
 	@Override

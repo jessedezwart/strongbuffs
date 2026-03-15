@@ -51,171 +51,77 @@ RuleDefinition          <- one user-created rule (persisted as JSON)
   |- activationMode     <- WHILE_ACTIVE / ON_ENTER / ON_EXIT
   `- cooldownTicks      <- optional activation suppression
 
+DefinitionCatalog       <- source of truth for approved condition/action definitions
 RuleDefinitionStore     <- serializes versioned RuleDefinition list to/from RuneLite config
-DefinitionRegistry      <- approved condition/action model catalog
-ConditionEditorRegistry <- builds condition editor metadata/components
-ActionEditorRegistry    <- builds action editor metadata/components
-RulePanelController     <- owns persisted rules, draft state, and validation
-StrongBuffsPanel        <- PluginPanel sidebar: list/create/edit/delete rules
-RuntimeConditionRequirements <- selective watchlist derived from enabled rules
-RuntimeConditionTracker <- RuneLite event subscriber that maintains runtime state
-RuntimeState            <- aggregate cached local-player state for runtime evaluation
-ConditionChecker        <- evaluates condition trees against RuntimeState
-StrongBuffsPlugin       <- wires toolbar + panel
-StrongBuffsConfig       <- plugin config stub
+ConditionEditorRegistry <- builds condition editor metadata/components from the catalog
+ActionEditorRegistry    <- builds action editor metadata/components from the catalog
+RuleRepository          <- persisted rule access plus runtime synchronization
+RuleDraftSession        <- current edit draft and selection
+RuleDraftValidator      <- validates draft rules before save
+RulePanelController     <- facade over repository, draft session, validation, and unsaved-change flow
+RuntimeConditionRegistry <- maps condition classes to runtime matchers, requirements, and value formatters
+RuntimeConditionRequirementCollector <- derives selective watchlists from enabled rules
+RuntimeConditionTracker <- RuneLite event subscriber that maintains cached runtime state
+RuleCompiler            <- compiles rules to trigger-aware runtime rules
+RuleEngine              <- applies activation mode and cooldown semantics
+ActionDispatcher        <- dispatches compiled actions to runtime action handlers
+RuleRuntimeController   <- wires compiler, tracker, engine, and action dispatcher together
+StrongBuffsPlugin       <- wires toolbar + panel + runtime controller
 ```
 
 ### Current Repo State
 
-- The repo currently has persistence, editor UI, model validation, runtime condition evaluation, and selective RuneLite-backed runtime state tracking.
-- It does **not** yet have a full rule engine, trigger index, compiled-rule layer, overlays, or sound playback controllers.
-- Current runtime work should build on `runtime/RuntimeConditionTracker`, `runtime/RuntimeState`, and `runtime/ConditionChecker`.
-
-### Package Structure
-
-```
-nl.jessedezwart.strongbuffs/
-  StrongBuffsPlugin.java
-  StrongBuffsConfig.java
-  RuleDefinitionStore.java
-  model/
-    action/
-      ActionDefinition.java
-      impl/
-        OverlayTextAction.java
-        ScreenFlashAction.java
-        SoundAlertAction.java
-    condition/
-      ComparisonOperator.java
-      ConditionDefinition.java
-      ConditionEditorOptions.java
-      NumericConditionDefinition.java
-      impl/
-        HpCondition.java
-        PrayerPointsCondition.java
-        PrayerActiveCondition.java
-        SpecialAttackCondition.java
-        RunEnergyCondition.java
-        PoisonCondition.java
-        SlayerTaskCondition.java
-        SkillLevelCondition.java
-        XpGainCondition.java
-        ItemInInventoryCondition.java
-        ItemCountCondition.java
-        ItemEquippedCondition.java
-        GroundItemCondition.java
-        PlayerInZoneCondition.java
-        PlayerInInstanceCondition.java
-      tree/
-        ConditionNode.java
-        ConditionGroup.java
-        ConditionLogic.java
-    editor/
-      EditorField.java
-    registry/
-      DefinitionRegistry.java
-    rule/
-      RuleDefinition.java
-      ActivationMode.java
-  panel/
-    editor/
-      ActionEditorRegistry.java
-      ActionEditorSupport.java
-      ConditionEditorRegistry.java
-      EditorFieldComponentFactory.java
-    state/
-      RuleDraft.java
-      RulePanelController.java
-      RuleValidationResult.java
-      RuleDescriptions.java
-      RuleControllerActionResult.java
-      UnsavedResolution.java
-    view/
-      StrongBuffsPanel.java
-      RuleListPanel.java
-      RuleEditPanel.java
-      ConditionGroupPanel.java
-      ConditionRowPanel.java
-  runtime/
-    RuntimeConditionRequirements.java
-    RuntimeConditionTracker.java
-    RuntimeState.java
-    ConditionChecker.java
-    state/
-      SkillRuntimeState.java
-      VarRuntimeState.java
-      InventoryRuntimeState.java
-      GroundItemRuntimeState.java
-      LocationRuntimeState.java
-```
-
-### Data Model
-
-```java
-// One user-defined rule
-class RuleDefinition
-{
-    int schemaVersion;
-    String id;                  // UUID, generated on creation
-    String name;
-    boolean enabled;
-    ConditionGroup rootGroup;
-    ActivationMode activationMode;
-    int cooldownTicks;          // optional; 0 = none
-    ActionDefinition action;
-}
-
-// Persisted condition tree node - AND/OR group
-class ConditionGroup implements ConditionNode
-{
-    ConditionLogic logic;          // AND or OR
-    List<ConditionNode> children;  // Condition leaves or nested ConditionGroups
-}
-
-// Persisted leaf node - no direct RuneLite client access here
-abstract class ConditionDefinition implements ConditionNode
-{
-}
-
-// What to do when the rule fires
-abstract class ActionDefinition
-{
-}
-
-// Runtime snapshot used by condition evaluation
-class RuntimeState
-{
-    SkillRuntimeState skills;
-    VarRuntimeState vars;
-    InventoryRuntimeState inventory;
-    GroundItemRuntimeState groundItems;
-    LocationRuntimeState location;
-}
-```
-
-**Condition logic example:**
-```
-rootGroup (AND)
-  |- PrayerPointsCondition (< 10)
-  `- nestedGroup (OR)
-     |- PrayerActiveCondition (Protect from Magic active)
-     `- PlayerInZoneCondition (Edgeville area)
-```
+- The repo now has a full vertical slice: persistence, editor UI, model validation, selective RuneLite-backed runtime state tracking, compiled rules, trigger indexing, activation/cooldown handling, overlay rendering, screen flash handling, and sound dispatch.
+- `ConditionDefinition` and `ActionDefinition` implementations are persisted data plus editor/validation metadata only. They must not access RuneLite directly.
+- Runtime behavior is centralized in registries and updaters. If a condition needs in-game data, the mapping belongs in runtime services, not in the persisted model class.
 
 ### Runtime Model
 
 Persisted definitions are pure data. They are safe to serialize, diff, validate, and migrate.
 
-Current runtime evaluation is split into:
+Current runtime evaluation is split into clearly separated steps:
 
-- `RuntimeState`: aggregate root for the split runtime slices
-- `ConditionChecker`: recursive tree walker for `ConditionGroup`
-- `ConditionDefinition.matches(RuntimeState)`: leaf condition evaluation lives on the condition implementations
-- `ConditionDefinition.contributeRequirements(...)`: leaf conditions declare the runtime data they require
-- `RuntimeConditionRequirements`: immutable watchlist derived from enabled persisted rules
-- `RuntimeConditionTracker`: subscribes to RuneLite events and populates only the state slices required by the current rule set
+1. `DefinitionCatalog`
+   - maps approved type IDs to condition/action classes
+   - provides metadata instances for the editor
+   - creates default instances for new rows in the panel
+2. `ConditionRuntimeRegistry`
+   - maps each condition class to a matcher
+   - declares which runtime requirements that condition needs
+   - formats live values for actions such as overlay text
+3. `RuntimeConditionRequirementCollector`
+   - walks enabled rule trees and builds a selective `RuntimeConditionRequirements` watchlist
+4. `RuntimeConditionTracker`
+   - subscribes to RuneLite events
+   - refreshes only the runtime slices required by the active rules
+   - stores cached data in `RuntimeState`
+5. `ConditionChecker`
+   - evaluates persisted condition trees against cached `RuntimeState`
+6. `RuleCompiler`
+   - turns validated rules into `CompiledRule` objects
+   - precomputes each rule's requirements and trigger plan
+   - builds a `RuleTriggerIndex` so the engine only reevaluates affected rules
+7. `RuleEngine`
+   - handles `WHILE_ACTIVE`, `ON_ENTER`, and `ON_EXIT`
+   - enforces cooldowns
+   - activates, updates, and clears actions through `ActionDispatcher`
+8. `ActionDispatcher` and `RuntimeActionHandlerRegistry`
+   - route each action type to its runtime handler
+   - own overlay/screen-flash/sound lifecycle
 
-The full activation/cooldown rule engine described earlier in this file is still planned work, not current repo state.
+`RuntimeState` is the cached snapshot used for evaluation. It is split into skill, var, inventory, ground-item, and location slices.
+
+### Condition To Game-State Mapping
+
+Conditions are mapped to in-game values in `ConditionRuntimeRegistry`, not in the condition classes themselves.
+
+- Numeric conditions such as HP, prayer points, spec, run energy, skill level, and item count are mapped by reading the relevant value from `RuntimeState` and comparing it with the condition operator and threshold.
+- Boolean or structured conditions such as prayer active, poison state, slayer task state, XP gain, item presence, zone membership, and instance state each have dedicated runtime matchers in the registry.
+- The same registry also declares which runtime slices those conditions need. That drives the watchlist used by `RuntimeConditionTracker`.
+
+This means adding a condition is usually a two-part change:
+- add a persisted condition definition for editor/persistence concerns
+- add runtime registration and, if needed, new tracked state for evaluation concerns
 
 ### Activation Semantics
 
@@ -239,7 +145,7 @@ All rules are serialized as a JSON array using Gson (bundled with RuneLite) and 
 - Config key: `rules`
 - Format: `[{ "id": "...", "name": "...", ... }, ...]`
 
-`RuleDefinitionStore` owns all serialize/deserialize logic. Polymorphic Gson type adapters handle `ConditionNode` and `ActionDefinition` subtypes.
+`RuleDefinitionStore` owns all serialize/deserialize logic. It uses the `DefinitionCatalog` to resolve condition and action type IDs through polymorphic Gson adapters.
 
 Persistence rules:
 
@@ -249,46 +155,6 @@ Persistence rules:
 - User-entered names may be accepted in the UI, but persisted data should prefer canonical internal identifiers where practical
 
 On `startUp`: load and deserialize from config. On any save: serialize and write back.
-
-## Condition Reference
-
-Current repo condition set: 15 conditions. All track the local player only.
-
-| # | Class | What it checks | Intended runtime source |
-|---|-------|---------------|-------------------------|
-| 1 | `HpCondition` | HP points below/above X | boosted HP level |
-| 2 | `PrayerPointsCondition` | Prayer points below/above X | prayer points |
-| 3 | `PrayerActiveCondition` | Specific prayer active/inactive | prayer varbits |
-| 4 | `SpecialAttackCondition` | Special attack energy below/above X% | spec varp |
-| 5 | `RunEnergyCondition` | Run energy below/above X% | run energy varp |
-| 6 | `PoisonCondition` | Poison or venom active | poison/venom state |
-| 7 | `SlayerTaskCondition` | Task active or kills remaining check | slayer vars |
-| 8 | `SkillLevelCondition` | Real skill level above/below X | real skill level |
-| 9 | `XpGainCondition` | XP gained in a specific skill | `StatChanged` |
-| 10 | `ItemInInventoryCondition` | Item present in inventory by name | inventory container |
-| 11 | `ItemCountCondition` | Inventory item count above/below X | inventory container |
-| 12 | `ItemEquippedCondition` | Item equipped by name | equipment container |
-| 13 | `GroundItemCondition` | Ground item nearby by name | ground item cache |
-| 14 | `PlayerInZoneCondition` | Player inside a defined tile rectangle | world location |
-| 15 | `PlayerInInstanceCondition` | Player is in a private instance | world view instance flag |
-
-Removed from the repo condition catalog:
-
-- `WildernessCondition`
-- `QuestProgressCondition`
-- `BoostedSkillCondition`
-
-Do not assume removed conditions are still part of the current implementation unless the user explicitly asks to add them back.
-
-## Action Types
-
-Current repo action set: 3 actions.
-
-| Class | What it represents |
-|------|---------------------|
-| `OverlayTextAction` | Overlay text label with optional live value |
-| `ScreenFlashAction` | Screen flash configuration |
-| `SoundAlertAction` | Sound preset + volume |
 
 ## Panel UI
 
@@ -326,7 +192,14 @@ Color: [########]
 
 `ConditionGroupPanel` renders recursively. A `ConditionGroup` may contain nested `ConditionGroup` children, each rendered as an indented sub-panel with its own AND/OR toggle.
 
-The panel should edit a draft model and only persist validated data on save. Do not mutate live runtime objects directly from Swing components.
+The panel edits a `RuleDraft`, not persisted runtime state. `RulePanelController` is a facade over:
+
+- `RuleRepository` for persisted rule access and runtime synchronization
+- `RuleDraftSession` for the current draft and selected rule
+- `RuleDraftValidator` for save-time validation
+- `UnsavedChangesGuard` for deferred navigation/create/delete flows
+
+Do not mutate live runtime objects directly from Swing components.
 
 ## Runtime Check Work
 
@@ -334,11 +207,11 @@ Current runtime implementation:
 
 - `RuntimeState` is an aggregate root around split state slices:
   `SkillRuntimeState`, `VarRuntimeState`, `InventoryRuntimeState`, `GroundItemRuntimeState`, and `LocationRuntimeState`
-- `ConditionChecker` evaluates either a single `ConditionDefinition` or a recursive `ConditionGroup`
-- Each condition implementation owns both:
-  - `matches(RuntimeState)` for evaluation
-  - `contributeRequirements(RuntimeConditionRequirements.Builder)` for declaring runtime dependencies
-- `RuntimeConditionTracker` derives a selective watchlist from enabled rules and only tracks the needed data sources
+- `RuntimeConditionTracker` owns event subscriptions and delegates state mutation to focused updater classes
+- `ConditionRuntimeRegistry` is the runtime mapping layer for condition evaluation, requirement planning, and live-value formatting
+- `ConditionChecker` recursively evaluates `ConditionGroup` trees against cached `RuntimeState`
+- `RuleCompiler` and `RuleTriggerIndex` reduce reevaluation work to rules affected by the incoming runtime triggers
+- `RuleEngine` applies activation mode and cooldown semantics, then calls `ActionDispatcher`
 
 Current RuneLite wiring:
 
@@ -349,36 +222,49 @@ Current RuneLite wiring:
 - `GameTick` only when run energy, XP gain tick state, player location, or instance checks are required
 - `GameStateChanged` to refresh or clear tracked state on login transitions
 
-Still missing:
-
-- A trigger index
-- A rule engine that handles transitions and cooldowns
-- Action execution/rendering driven by runtime evaluation
-
-## Build Order
-
-Build in this sequence:
-
-1. **Core model** - rule, condition tree, and action definitions
-2. **Versioned storage** - `RuleDefinitionStore` with subtype adapters and schema validation
-3. **Editor UI** - registries, panel state, recursive condition editing
-4. **Runtime checks** - `RuntimeState` plus `ConditionChecker`
-5. **Event-driven runtime** - populate `RuntimeState` from RuneLite events
-6. **Rule engine** - transitions, cooldowns, and rule activation state
-7. **Action execution** - overlays, flashes, sounds, and lifecycle management
-8. **Testing** - serialization, editor, evaluator, runtime routing, activation transitions
-
 ## New Condition Workflow (`/new-condition`)
 
 1. Confirm the condition is in the approved list in `docs/runelite-wiki/rejected-features.md`
 2. Identify the triggering event and VarBit/API from `docs/runelite-wiki/vars.md` and `events-reference.md`
-3. Add a persisted definition class in `model/condition/`
-4. Register it in `DefinitionRegistry`
-5. Implement `matches(RuntimeState)` on the condition
-6. Implement `contributeRequirements(RuntimeConditionRequirements.Builder)` on the condition
-7. If it needs a new runtime source, extend `RuntimeConditionTracker` and the relevant `runtime/state/*` slice
-8. Add tests for serialization, evaluation, and requirement collection
-9. Add a row to the condition reference table in this file
+3. Add a persisted condition definition class under `model/condition/impl/`
+4. Keep that class limited to:
+   - persisted fields
+   - editor label/description/fields
+   - validation
+   - copying
+   - `getTypeId()`
+5. Register the new condition in `DefaultDefinitionCatalog`
+   - add metadata instance
+   - add factory supplier
+6. Register the runtime behavior in `ConditionRuntimeRegistry`
+   - matcher
+   - requirement contributor
+   - live-value formatter if the action UI needs one
+7. If the condition only uses existing runtime slices, stop there
+8. If it needs new data:
+   - extend `RuntimeConditionRequirements`
+   - extend the relevant `RuntimeState` slice or add a new slice
+   - update the relevant updater class, or add a new updater if the concern does not fit an existing one
+   - make sure `RuntimeConditionTracker` refreshes and emits the correct runtime triggers
+   - update `RuntimeTriggerPlanner` if the new requirement needs a new trigger
+9. Add tests for:
+   - serialization/deserialization through `RuleDefinitionStore`
+   - requirement collection
+   - condition evaluation through `ConditionChecker`
+   - updater/tracker behavior if new runtime state was introduced
+   - rule-engine behavior if the condition has edge cases around transitions or cooldowns
+10. Update this guide if the architecture or workflow changed materially
+
+### Adding Actions
+
+Action work follows the same split:
+
+1. Add the persisted `ActionDefinition` implementation
+2. Register it in `DefaultDefinitionCatalog`
+3. Add editor metadata support if needed
+4. Implement a `RuntimeActionHandler<T>`
+5. Register that handler in `RuntimeActionHandlerRegistry`
+6. Add tests for persistence, handler behavior, and lifecycle
 
 ## Key RuneLite APIs
 
@@ -431,9 +317,7 @@ From `docs/runelite-wiki/code-conventions.md`:
 | `./gradlew run` | Start the dev client with `--developer-mode --debug` and the plugin loaded |
 | `./gradlew build` | Compile and run all checks |
 | `./gradlew test` | Run unit tests only |
-| `./gradlew shadowJar` | Build the distributable fat JAR (output: `build/libs/*-all.jar`) |
 
-**Claude Code skills:** `/run`, `/build`, `/test`, `/new-condition` (defined in `.claude/commands/`)
 **Codex skills:** defined in `skills/` with `SKILL.md` files (auto-matched by description)
 
 ## Development Workflow
@@ -470,7 +354,6 @@ From `docs/runelite-wiki/code-conventions.md`:
 - Do not put direct RuneLite API calls into persisted model classes; keep them in runtime evaluators/controllers only
 
 **Code:**
-- Plugin package: `nl.jessedezwart.strongbuffs`; main class: `StrongBuffsPlugin`; config: `StrongBuffsConfig`
 - Java only; tabs; Allman braces; Lombok `@Slf4j` for logging
 - Do not modify `docs/runelite-wiki/rejected-features.md` - it is the immutable legal whitelist
 - Prefer deterministic versions in Gradle and avoid `latest.release` once the project moves beyond scaffolding

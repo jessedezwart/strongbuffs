@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -40,18 +38,6 @@ public class ItemEquippedCondition extends ConditionDefinition
 	public List<EditorField> getEditorFields()
 	{
 		return Arrays.asList(EditorField.text("itemName", "Item", 16, this::getItemName, this::setItemName));
-	}
-
-	@Override
-	public boolean matches(RuntimeState state)
-	{
-		return state != null && state.getInventory().hasEquippedItem(itemName);
-	}
-
-	@Override
-	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
-	{
-		builder.requireEquippedItem(itemName);
 	}
 
 	@Override

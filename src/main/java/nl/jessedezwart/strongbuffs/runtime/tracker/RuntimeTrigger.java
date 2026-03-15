@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime;
+package nl.jessedezwart.strongbuffs.runtime.tracker;
 
 public enum RuntimeTrigger
 {

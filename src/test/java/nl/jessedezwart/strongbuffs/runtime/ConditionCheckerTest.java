@@ -25,6 +25,8 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionChecker;
+import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 import org.junit.Before;
 import org.junit.Test;
 
