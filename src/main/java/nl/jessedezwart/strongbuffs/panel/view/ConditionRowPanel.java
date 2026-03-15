@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
@@ -79,7 +80,7 @@ public class ConditionRowPanel extends JPanel
 		add(editorPanel);
 		add(Box.createHorizontalStrut(6));
 
-		javax.swing.JButton removeButton = new javax.swing.JButton("Remove");
+		JButton removeButton = new JButton("Remove");
 		removeButton.addActionListener(event -> onRemove.run());
 		removeButton.setMaximumSize(removeButton.getPreferredSize());
 		add(removeButton);

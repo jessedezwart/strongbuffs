@@ -17,7 +17,8 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 
 /**
- * Root RuneLite sidebar panel for managing rule definitions and editing the selected draft.
+ * Root RuneLite sidebar panel for managing rule definitions and editing the
+ * selected draft.
  */
 @Singleton
 public class StrongBuffsPanel extends PluginPanel
@@ -28,7 +29,7 @@ public class StrongBuffsPanel extends PluginPanel
 
 	@Inject
 	public StrongBuffsPanel(RulePanelController controller, ConditionEditorRegistry conditionRegistry,
-		ActionEditorRegistry actionRegistry)
+			ActionEditorRegistry actionRegistry)
 	{
 		super(true);
 		this.controller = controller;
@@ -42,13 +43,12 @@ public class StrongBuffsPanel extends PluginPanel
 		content.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		wrappedPanel.add(content, BorderLayout.NORTH);
 
-		ruleListPanel = new RuleListPanel(this::selectRule, this::createRule, this::duplicateRule, this::deleteRule,
-			actionRegistry);
+		ruleListPanel = new RuleListPanel(this::selectRule, this::createRule, this::duplicateRule, this::deleteRule);
 		content.add(ruleListPanel);
 		content.add(Box.createVerticalStrut(8));
 
-		ruleEditPanel = new RuleEditPanel(controller, conditionRegistry, actionRegistry,
-			this::handleLiveDraftChange, this::refreshFromController);
+		ruleEditPanel = new RuleEditPanel(controller, conditionRegistry, actionRegistry, this::handleLiveDraftChange,
+				this::refreshFromController);
 		content.add(ruleEditPanel);
 
 		refreshFromController();
@@ -83,7 +83,7 @@ public class StrongBuffsPanel extends PluginPanel
 		}
 
 		int choice = JOptionPane.showConfirmDialog(this, "Delete the selected rule?", "Delete Rule",
-			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
 		if (choice != JOptionPane.YES_OPTION)
 		{
@@ -98,8 +98,8 @@ public class StrongBuffsPanel extends PluginPanel
 		if (result.requiresUnsavedConfirmation())
 		{
 			int choice = JOptionPane.showOptionDialog(this, "You have unsaved changes.", "Unsaved Changes",
-				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-				new Object[] {"Save", "Discard", "Cancel"}, "Save");
+					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[]
+					{ "Save", "Discard", "Cancel" }, "Save");
 
 			UnsavedResolution resolution;
 

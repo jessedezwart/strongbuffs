@@ -26,7 +26,7 @@ public class ConditionGroupPanel extends JPanel
 	private final Runnable onRemove;
 
 	public ConditionGroupPanel(ConditionGroup group, boolean root, ConditionEditorRegistry conditionRegistry,
-		Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove)
+			Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove)
 	{
 		this.group = group;
 		this.root = root;
@@ -60,12 +60,10 @@ public class ConditionGroupPanel extends JPanel
 	{
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(ColorScheme.MEDIUM_GRAY_COLOR),
-			BorderFactory.createEmptyBorder(6, 6, 6, 6)));
+		setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(ColorScheme.MEDIUM_GRAY_COLOR),
+				BorderFactory.createEmptyBorder(6, 6, 6, 6)));
 
 		add(createHeader());
-		add(Box.createVerticalStrut(6));
 
 		for (ConditionNode child : group.getChildren())
 		{
@@ -73,7 +71,7 @@ public class ConditionGroupPanel extends JPanel
 			{
 				ConditionGroup childGroup = (ConditionGroup) child;
 				ConditionGroupPanel childPanel = new ConditionGroupPanel(childGroup, false, conditionRegistry,
-					onLiveChange, onStructureChange, () -> removeChild(childGroup));
+						onLiveChange, onStructureChange, () -> removeChild(childGroup));
 				childPanel.setAlignmentX(LEFT_ALIGNMENT);
 				add(childPanel);
 			}
@@ -81,7 +79,8 @@ public class ConditionGroupPanel extends JPanel
 			{
 				ConditionDefinition condition = (ConditionDefinition) child;
 				ConditionRowPanel rowPanel = new ConditionRowPanel(condition, conditionRegistry, onLiveChange,
-					onStructureChange, () -> removeChild(condition), replacement -> replaceChild(condition, replacement));
+						onStructureChange, () -> removeChild(condition),
+						replacement -> replaceChild(condition, replacement));
 				rowPanel.setAlignmentX(LEFT_ALIGNMENT);
 				add(rowPanel);
 			}

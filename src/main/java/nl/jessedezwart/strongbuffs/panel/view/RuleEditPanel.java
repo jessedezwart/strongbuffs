@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -40,12 +41,12 @@ public class RuleEditPanel extends JPanel
 	private JLabel conditionsErrorLabel;
 	private JLabel actionErrorLabel;
 	private JLabel emptyStateLabel;
-	private javax.swing.JButton saveButton;
-	private javax.swing.JButton cancelButton;
+	private JButton saveButton;
+	private JButton cancelButton;
 	private JTextField nameField;
 
 	public RuleEditPanel(RulePanelController controller, ConditionEditorRegistry conditionRegistry,
-		ActionEditorRegistry actionRegistry, Runnable onLiveChange, Runnable onStructureChange)
+			ActionEditorRegistry actionRegistry, Runnable onLiveChange, Runnable onStructureChange)
 	{
 		this.controller = controller;
 		this.conditionRegistry = conditionRegistry;
@@ -109,19 +110,18 @@ public class RuleEditPanel extends JPanel
 
 		if (conditionsErrorLabel != null)
 		{
-			conditionsErrorLabel.setText(valueOrBlank(
-				this.validationResult.getFieldError(RulePanelController.FIELD_CONDITIONS)));
+			conditionsErrorLabel
+					.setText(valueOrBlank(this.validationResult.getFieldError(RulePanelController.FIELD_CONDITIONS)));
 		}
 
 		if (actionErrorLabel != null)
 		{
-			String actionError = firstNonBlank(
-				this.validationResult.getFieldError(RulePanelController.FIELD_ACTION),
-				this.validationResult.getFieldError(RulePanelController.FIELD_ACTION_TEXT),
-				this.validationResult.getFieldError(RulePanelController.FIELD_ACTION_COLOR),
-				this.validationResult.getFieldError("action.durationTicks"),
-				this.validationResult.getFieldError("action.soundKey"),
-				this.validationResult.getFieldError("action.volumePercent"));
+			String actionError = firstNonBlank(this.validationResult.getFieldError(RulePanelController.FIELD_ACTION),
+					this.validationResult.getFieldError(RulePanelController.FIELD_ACTION_TEXT),
+					this.validationResult.getFieldError(RulePanelController.FIELD_ACTION_COLOR),
+					this.validationResult.getFieldError("action.durationTicks"),
+					this.validationResult.getFieldError("action.soundKey"),
+					this.validationResult.getFieldError("action.volumePercent"));
 			actionErrorLabel.setText(valueOrBlank(actionError));
 		}
 
@@ -163,10 +163,9 @@ public class RuleEditPanel extends JPanel
 		JPanel section = createSection("Conditions");
 		conditionsErrorLabel = createErrorLabel();
 		section.add(conditionsErrorLabel);
-		section.add(Box.createVerticalStrut(4));
 
 		ConditionGroupPanel groupPanel = new ConditionGroupPanel(draft.getRootGroup(), true, conditionRegistry,
-			onLiveChange, onStructureChange, null);
+				onLiveChange, onStructureChange, null);
 		groupPanel.setAlignmentX(LEFT_ALIGNMENT);
 		section.add(groupPanel);
 		return section;
@@ -200,16 +199,16 @@ public class RuleEditPanel extends JPanel
 		JPanel section = createSection("Action");
 
 		JComboBox<Class<? extends ActionDefinition>> actionTypeComboBox = new JComboBox<>(
-			actionRegistry.getActionClasses().toArray(new Class[0]));
-		actionTypeComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) ->
-			new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
-				value == null ? "" : actionRegistry.getByActionClass(value).getEditorLabel(),
-				index, isSelected, cellHasFocus));
+				actionRegistry.getActionClasses().toArray(new Class[0]));
+		actionTypeComboBox.setRenderer((list, value, index, isSelected,
+				cellHasFocus) -> new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
+						value == null ? "" : actionRegistry.getByActionClass(value).getEditorLabel(), index, isSelected,
+						cellHasFocus));
 		actionTypeComboBox.setSelectedItem(draft.getAction().getClass());
 		actionTypeComboBox.addActionListener(event ->
 		{
-			Class<? extends ActionDefinition> selectedClass =
-				(Class<? extends ActionDefinition>) actionTypeComboBox.getSelectedItem();
+			Class<? extends ActionDefinition> selectedClass = (Class<? extends ActionDefinition>) actionTypeComboBox
+					.getSelectedItem();
 
 			if (selectedClass == null || selectedClass == draft.getAction().getClass())
 			{
@@ -236,7 +235,7 @@ public class RuleEditPanel extends JPanel
 		footer.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		footer.setAlignmentX(LEFT_ALIGNMENT);
 
-		saveButton = new javax.swing.JButton("Save");
+		saveButton = new JButton("Save");
 		saveButton.addActionListener(event ->
 		{
 			controller.saveDraft();
@@ -244,7 +243,7 @@ public class RuleEditPanel extends JPanel
 		});
 		footer.add(saveButton);
 
-		cancelButton = new javax.swing.JButton("Cancel");
+		cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(event ->
 		{
 			controller.cancelDraft();
@@ -265,7 +264,7 @@ public class RuleEditPanel extends JPanel
 		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
 		section.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		section.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(title),
-			BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+				BorderFactory.createEmptyBorder(4, 0, 4, 0)));
 		return section;
 	}
 

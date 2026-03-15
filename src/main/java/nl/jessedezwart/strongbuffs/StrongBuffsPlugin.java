@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
@@ -16,11 +17,8 @@ import net.runelite.client.ui.NavigationButton;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
 
 @Slf4j
-@PluginDescriptor(
-	name = "StrongBuffs",
-	description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.",
-	tags = {"overlay", "buffs", "rule", "timers", "alerts", "weakauras"}
-)
+@PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =
+{ "overlay", "buffs", "rule", "timers", "alerts", "weakauras" })
 public class StrongBuffsPlugin extends Plugin
 {
 	@Inject
@@ -38,12 +36,9 @@ public class StrongBuffsPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		strongBuffsPanel.reload();
-		navigationButton = NavigationButton.builder()
-			.tooltip("Strong Buffs")
-			.icon(createNavigationIcon())
-			.priority(6)
-			.panel(strongBuffsPanel)
-			.build();
+		SwingUtilities.updateComponentTreeUI(strongBuffsPanel.getWrappedPanel());
+		navigationButton = NavigationButton.builder().tooltip("Strong Buffs").icon(createNavigationIcon()).priority(6)
+				.panel(strongBuffsPanel).build();
 		clientToolbar.addNavigation(navigationButton);
 		log.debug("StrongBuffs started!");
 	}

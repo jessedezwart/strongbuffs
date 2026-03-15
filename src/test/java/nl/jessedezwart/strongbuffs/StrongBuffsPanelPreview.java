@@ -17,11 +17,13 @@ import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
+import net.runelite.client.ui.laf.RuneLiteLAF;
 
 public class StrongBuffsPanelPreview
 {
 	public static void main(String[] args)
 	{
+		RuneLiteLAF.setup();
 		SwingUtilities.invokeLater(StrongBuffsPanelPreview::showPreview);
 	}
 
@@ -144,7 +146,8 @@ public class StrongBuffsPanelPreview
 				copy.setId(sourceRule.getId());
 				copy.setName(sourceRule.getName());
 				copy.setEnabled(sourceRule.isEnabled());
-				copy.setRootGroup(nl.jessedezwart.strongbuffs.panel.state.RuleDraft.copyGroup(sourceRule.getRootGroup()));
+				copy.setRootGroup(
+						nl.jessedezwart.strongbuffs.panel.state.RuleDraft.copyGroup(sourceRule.getRootGroup()));
 				copy.setActivationMode(sourceRule.getActivationMode());
 				copy.setCooldownTicks(sourceRule.getCooldownTicks());
 				copy.setAction(nl.jessedezwart.strongbuffs.panel.state.RuleDraft.copyAction(sourceRule.getAction()));
