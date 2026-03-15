@@ -1,0 +1,327 @@
+package nl.jessedezwart.strongbuffs;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
+import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
+import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
+
+@Slf4j
+@Singleton
+public class RuleDefinitionStore
+{
+	static final String CONFIG_GROUP = "strongbuffs";
+	static final String CONFIG_KEY_RULES = "rules";
+	static final int CURRENT_SCHEMA_VERSION = 1;
+	private static final Map<String, Class<? extends ConditionNode>> CONDITION_NODE_TYPES = createConditionNodeTypes();
+	private static final Map<String, Class<? extends ActionDefinition>> ACTION_DEFINITION_TYPES = createActionDefinitionTypes();
+
+	private final ConfigManager configManager;
+	private final Gson gson;
+
+	@Inject
+	public RuleDefinitionStore(ConfigManager configManager)
+	{
+		this(configManager, createGson());
+	}
+
+	RuleDefinitionStore(ConfigManager configManager, Gson gson)
+	{
+		this.configManager = configManager;
+		this.gson = gson;
+	}
+
+	public List<RuleDefinition> load()
+	{
+		return deserialize(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES));
+	}
+
+	public void save(List<RuleDefinition> rules)
+	{
+		configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES, serialize(rules));
+	}
+
+	String serialize(List<RuleDefinition> rules)
+	{
+		List<RuleDefinition> sanitizedRules = new ArrayList<>();
+
+		if (rules != null)
+		{
+			for (RuleDefinition rule : rules)
+			{
+				if (rule == null)
+				{
+					continue;
+				}
+
+				rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
+				sanitizedRules.add(rule);
+			}
+		}
+
+		return gson.toJson(sanitizedRules);
+	}
+
+	List<RuleDefinition> deserialize(String serializedRules)
+	{
+		if (serializedRules == null || serializedRules.isBlank())
+		{
+			return new ArrayList<>();
+		}
+
+		JsonElement root;
+
+		try
+		{
+			root = new JsonParser().parse(serializedRules);
+		}
+		catch (RuntimeException ex)
+		{
+			log.warn("Failed to parse stored rules JSON", ex);
+			return new ArrayList<>();
+		}
+
+		if (!root.isJsonArray())
+		{
+			log.warn("Ignoring stored rules because the root JSON element was not an array");
+			return new ArrayList<>();
+		}
+
+		List<RuleDefinition> rules = new ArrayList<>();
+		JsonArray array = root.getAsJsonArray();
+
+		for (JsonElement element : array)
+		{
+			if (!element.isJsonObject())
+			{
+				log.warn("Ignoring stored rule because the JSON element was not an object");
+				continue;
+			}
+
+			JsonObject jsonObject = element.getAsJsonObject();
+
+			if (!hasRequiredFields(jsonObject))
+			{
+				log.warn("Ignoring stored rule because required JSON fields were missing");
+				continue;
+			}
+
+			try
+			{
+				RuleDefinition rule = gson.fromJson(jsonObject, RuleDefinition.class);
+				RuleDefinition migratedRule = migrate(rule);
+
+				if (migratedRule != null)
+				{
+					rules.add(migratedRule);
+				}
+			}
+			catch (RuntimeException ex)
+			{
+				log.warn("Ignoring invalid stored rule definition", ex);
+			}
+		}
+
+		return rules;
+	}
+
+	private RuleDefinition migrate(RuleDefinition rule)
+	{
+		if (rule == null)
+		{
+			return null;
+		}
+
+		if (rule.getSchemaVersion() > CURRENT_SCHEMA_VERSION)
+		{
+			log.warn("Ignoring rule {} because schema version {} is newer than supported version {}", rule.getId(),
+					rule.getSchemaVersion(), CURRENT_SCHEMA_VERSION);
+			return null;
+		}
+
+		if (rule.getSchemaVersion() <= 0)
+		{
+			rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
+		}
+
+		if (rule.getRootGroup() == null || rule.getAction() == null)
+		{
+			log.warn("Ignoring rule {} because required fields were missing", rule.getId());
+			return null;
+		}
+
+		rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
+		return rule;
+	}
+
+	private static Gson createGson()
+	{
+		return new GsonBuilder().registerTypeAdapter(ConditionNode.class, new ConditionNodeAdapter())
+			.registerTypeAdapter(ActionDefinition.class, new ActionDefinitionAdapter()).create();
+	}
+
+	public static List<Class<? extends ConditionDefinition>> getSupportedConditionDefinitionClasses()
+	{
+		return DefinitionRegistry.getConditionDefinitions();
+	}
+
+	public static List<Class<? extends ActionDefinition>> getSupportedActionDefinitionClasses()
+	{
+		return DefinitionRegistry.getActionDefinitions();
+	}
+
+	private static Map<String, Class<? extends ConditionNode>> createConditionNodeTypes()
+	{
+		Map<String, Class<? extends ConditionNode>> typeToClass = new LinkedHashMap<>();
+		ConditionGroup group = new ConditionGroup();
+		typeToClass.put(group.getTypeId(), ConditionGroup.class);
+
+		for (Class<? extends ConditionDefinition> conditionClass : DefinitionRegistry.getConditionDefinitions())
+		{
+			ConditionDefinition condition = instantiate(conditionClass);
+			typeToClass.put(condition.getTypeId(), conditionClass);
+		}
+
+		return Collections.unmodifiableMap(typeToClass);
+	}
+
+	private static Map<String, Class<? extends ActionDefinition>> createActionDefinitionTypes()
+	{
+		Map<String, Class<? extends ActionDefinition>> typeToClass = new LinkedHashMap<>();
+
+		for (Class<? extends ActionDefinition> actionClass : DefinitionRegistry.getActionDefinitions())
+		{
+			ActionDefinition action = instantiate(actionClass);
+			typeToClass.put(action.getTypeId(), actionClass);
+		}
+
+		return Collections.unmodifiableMap(typeToClass);
+	}
+
+	private static final class ConditionNodeAdapter
+			implements JsonSerializer<ConditionNode>, JsonDeserializer<ConditionNode>
+	{
+		private static final String TYPE_FIELD = "type";
+
+		@Override
+		public JsonElement serialize(ConditionNode src, Type typeOfSrc, JsonSerializationContext context)
+		{
+			JsonObject jsonObject = context.serialize(src, src.getClass()).getAsJsonObject();
+			String type = src.getTypeId();
+
+			if (type == null)
+			{
+				throw new JsonParseException("Unsupported condition node type: " + src.getClass().getName());
+			}
+
+			jsonObject.addProperty(TYPE_FIELD, type);
+			return jsonObject;
+		}
+
+		@Override
+		public ConditionNode deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+		{
+			JsonObject jsonObject = json.getAsJsonObject();
+			String type = requireType(jsonObject, TYPE_FIELD);
+			Class<? extends ConditionNode> targetClass = CONDITION_NODE_TYPES.get(type);
+
+			if (targetClass == null)
+			{
+				throw new JsonParseException("Unsupported condition node type: " + type);
+			}
+
+			JsonObject payload = jsonObject.deepCopy();
+			payload.remove(TYPE_FIELD);
+			return context.deserialize(payload, targetClass);
+		}
+	}
+
+	private static final class ActionDefinitionAdapter
+		implements JsonSerializer<ActionDefinition>, JsonDeserializer<ActionDefinition>
+	{
+		private static final String TYPE_FIELD = "type";
+
+		@Override
+		public JsonElement serialize(ActionDefinition src, Type typeOfSrc, JsonSerializationContext context)
+		{
+			JsonObject jsonObject = context.serialize(src, src.getClass()).getAsJsonObject();
+			String type = src.getTypeId();
+
+			if (type == null)
+			{
+				throw new JsonParseException("Unsupported action definition type: " + src.getClass().getName());
+			}
+
+			jsonObject.addProperty(TYPE_FIELD, type);
+			return jsonObject;
+		}
+
+		@Override
+		public ActionDefinition deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+		{
+			JsonObject jsonObject = json.getAsJsonObject();
+			String type = requireType(jsonObject, TYPE_FIELD);
+			Class<? extends ActionDefinition> targetClass = ACTION_DEFINITION_TYPES.get(type);
+
+			if (targetClass == null)
+			{
+				throw new JsonParseException("Unsupported action definition type: " + type);
+			}
+
+			JsonObject payload = jsonObject.deepCopy();
+			payload.remove(TYPE_FIELD);
+			return context.deserialize(payload, targetClass);
+		}
+	}
+
+	private static String requireType(JsonObject jsonObject, String fieldName)
+	{
+		JsonElement typeElement = jsonObject.get(fieldName);
+
+		if (typeElement == null || !typeElement.isJsonPrimitive())
+		{
+			throw new JsonParseException("Missing required type field: " + fieldName);
+		}
+
+		return typeElement.getAsString();
+	}
+
+	private static boolean hasRequiredFields(JsonObject jsonObject)
+	{
+		return jsonObject.has("rootGroup") && jsonObject.has("action");
+	}
+
+	private static <T> T instantiate(Class<T> type)
+	{
+		try
+		{
+			return type.getDeclaredConstructor().newInstance();
+		}
+		catch (ReflectiveOperationException ex)
+		{
+			throw new IllegalStateException("Failed to instantiate " + type.getName(), ex);
+		}
+	}
+}

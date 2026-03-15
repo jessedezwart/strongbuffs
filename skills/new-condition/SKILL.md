@@ -1,6 +1,6 @@
 ---
 name: new-condition
-description: Scaffold a new Aura condition type for the Strong Buffs plugin. Use this when the user wants to add a new trigger — such as HP threshold, prayer active, special attack ready, item in inventory, or skill level change. Do not use for building or running the plugin.
+description: Scaffold a new Rule condition type for the Strong Buffs plugin. Use this when the user wants to add a new trigger — such as HP threshold, prayer active, special attack ready, item in inventory, or skill level change. Do not use for building or running the plugin.
 ---
 
 The user will describe the condition they want. Follow these steps in order:
@@ -23,7 +23,7 @@ Determine:
 - Whether the condition needs to poll on `GameTick` or react to a specific event
 
 ## Step 3 — Check existing patterns
-Read the current files in `src/main/java/` to understand the existing `Condition` interface/base class and `AuraManager` registration pattern before writing new code.
+Read the current files in `src/main/java/` to understand the existing `Condition` interface/base class and `RuleManager` registration pattern before writing new code.
 
 ## Step 4 — Implement
 Create the new `Condition` subclass in `src/main/java/` following:
@@ -33,5 +33,5 @@ Create the new `Condition` subclass in `src/main/java/` following:
 - `@Subscribe` on event methods
 
 ## Step 5 — Wire up
-- Register the condition in `AuraManager`
+- Register the condition in `RuleManager`
 - Add a config entry in `StrongBuffsConfig` if the condition requires user-settable parameters (e.g. the HP threshold value)

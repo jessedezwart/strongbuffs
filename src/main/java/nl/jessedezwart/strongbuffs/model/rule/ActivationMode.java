@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.model;
+package nl.jessedezwart.strongbuffs.model.rule;
 
 public enum ActivationMode
 {

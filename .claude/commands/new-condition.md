@@ -1,4 +1,4 @@
-Scaffold a new Aura condition type for the Strong Buffs plugin.
+Scaffold a new Rule condition type for the Strong Buffs plugin.
 
 The user will provide the name and description of the condition. Use this to:
 

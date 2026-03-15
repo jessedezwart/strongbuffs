@@ -6,60 +6,60 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
-import nl.jessedezwart.strongbuffs.model.ActivationMode;
-import nl.jessedezwart.strongbuffs.model.AuraDefinition;
-import nl.jessedezwart.strongbuffs.model.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.ConditionLogic;
+import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
+import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
-import nl.jessedezwart.strongbuffs.model.condition.HpCondition;
-import nl.jessedezwart.strongbuffs.model.condition.PrayerPointsCondition;
-import nl.jessedezwart.strongbuffs.model.condition.SpecCondition;
-import nl.jessedezwart.strongbuffs.model.display.OverlayTextDisplay;
-import nl.jessedezwart.strongbuffs.model.display.ScreenFlashDisplay;
-import nl.jessedezwart.strongbuffs.model.display.SoundAlertDisplay;
+import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
+import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
+import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
+import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import org.junit.Test;
 
-public class AuraDefinitionStoreTest
+public class RuleDefinitionStoreTest
 {
-	private final AuraDefinitionStore store = new AuraDefinitionStore(null);
+	private final RuleDefinitionStore store = new RuleDefinitionStore(null);
 
 	@Test
 	public void serializeAndDeserializeRoundTripsTypedDefinitions()
 	{
-		AuraDefinition firstAura = new AuraDefinition();
-		firstAura.setSchemaVersion(0);
-		firstAura.setId("low-hp");
-		firstAura.setName("Low HP");
-		firstAura.setEnabled(true);
-		firstAura.setActivationMode(ActivationMode.WHILE_ACTIVE);
-		firstAura.setCooldownTicks(4);
-		firstAura.setRootGroup(createConditionTree());
+		RuleDefinition firstRule = new RuleDefinition();
+		firstRule.setSchemaVersion(0);
+		firstRule.setId("low-hp");
+		firstRule.setName("Low HP");
+		firstRule.setEnabled(true);
+		firstRule.setActivationMode(ActivationMode.WHILE_ACTIVE);
+		firstRule.setCooldownTicks(4);
+		firstRule.setRootGroup(createConditionTree());
 
-		ScreenFlashDisplay screenFlashDisplay = new ScreenFlashDisplay();
-		screenFlashDisplay.setColorHex("#FF2200");
-		screenFlashDisplay.setDurationTicks(2);
-		firstAura.setDisplay(screenFlashDisplay);
+		ScreenFlashAction screenFlashAction = new ScreenFlashAction();
+		screenFlashAction.setColorHex("#FF2200");
+		screenFlashAction.setDurationTicks(2);
+		firstRule.setAction(screenFlashAction);
 
-		AuraDefinition secondAura = new AuraDefinition();
-		secondAura.setId("spec-ready");
-		secondAura.setName("Spec Ready");
-		secondAura.setEnabled(false);
-		secondAura.setActivationMode(ActivationMode.ON_ENTER);
+		RuleDefinition secondRule = new RuleDefinition();
+		secondRule.setId("spec-ready");
+		secondRule.setName("Spec Ready");
+		secondRule.setEnabled(false);
+		secondRule.setActivationMode(ActivationMode.ON_ENTER);
 
 		ConditionGroup secondGroup = new ConditionGroup();
-		SpecCondition specCondition = new SpecCondition();
+		SpecialAttackCondition specCondition = new SpecialAttackCondition();
 		specCondition.setOperator(ComparisonOperator.GREATER_THAN_OR_EQUAL);
 		specCondition.setThreshold(100);
 		secondGroup.getChildren().add(specCondition);
-		secondAura.setRootGroup(secondGroup);
+		secondRule.setRootGroup(secondGroup);
 
-		SoundAlertDisplay soundAlertDisplay = new SoundAlertDisplay();
-		soundAlertDisplay.setSoundKey("ding");
-		soundAlertDisplay.setVolumePercent(65);
-		secondAura.setDisplay(soundAlertDisplay);
+		SoundAlertAction soundAlertAction = new SoundAlertAction();
+		soundAlertAction.setSoundKey("ding");
+		soundAlertAction.setVolumePercent(65);
+		secondRule.setAction(soundAlertAction);
 
-		String serialized = store.serialize(Arrays.asList(firstAura, secondAura));
-		List<AuraDefinition> restored = store.deserialize(serialized);
+		String serialized = store.serialize(Arrays.asList(firstRule, secondRule));
+		List<RuleDefinition> restored = store.deserialize(serialized);
 
 		assertTrue(serialized.contains("\"type\":\"group\""));
 		assertTrue(serialized.contains("\"type\":\"hp\""));
@@ -69,13 +69,13 @@ public class AuraDefinitionStoreTest
 		assertTrue(serialized.contains("\"type\":\"sound_alert\""));
 		assertEquals(2, restored.size());
 
-		AuraDefinition restoredFirst = restored.get(0);
-		assertEquals(AuraDefinitionStore.CURRENT_SCHEMA_VERSION, restoredFirst.getSchemaVersion());
+		RuleDefinition restoredFirst = restored.get(0);
+		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, restoredFirst.getSchemaVersion());
 		assertEquals("low-hp", restoredFirst.getId());
 		assertEquals("Low HP", restoredFirst.getName());
 		assertEquals(ActivationMode.WHILE_ACTIVE, restoredFirst.getActivationMode());
 		assertEquals(4, restoredFirst.getCooldownTicks());
-		assertTrue(restoredFirst.getDisplay() instanceof ScreenFlashDisplay);
+		assertTrue(restoredFirst.getAction() instanceof ScreenFlashAction);
 		assertTrue(restoredFirst.getRootGroup().getChildren().get(0) instanceof HpCondition);
 		assertTrue(restoredFirst.getRootGroup().getChildren().get(1) instanceof ConditionGroup);
 
@@ -83,32 +83,32 @@ public class AuraDefinitionStoreTest
 		assertEquals(ConditionLogic.OR, nestedGroup.getLogic());
 		assertTrue(nestedGroup.getChildren().get(0) instanceof PrayerPointsCondition);
 
-		AuraDefinition restoredSecond = restored.get(1);
+		RuleDefinition restoredSecond = restored.get(1);
 		assertFalse(restoredSecond.isEnabled());
 		assertEquals(ActivationMode.ON_ENTER, restoredSecond.getActivationMode());
-		assertTrue(restoredSecond.getDisplay() instanceof SoundAlertDisplay);
-		assertTrue(restoredSecond.getRootGroup().getChildren().get(0) instanceof SpecCondition);
+		assertTrue(restoredSecond.getAction() instanceof SoundAlertAction);
+		assertTrue(restoredSecond.getRootGroup().getChildren().get(0) instanceof SpecialAttackCondition);
 	}
 
 	@Test
-	public void deserializeSkipsInvalidAuraDefinitions()
+	public void deserializeSkipsInvalidRuleDefinitions()
 	{
 		String serialized = "[" +
 			"{\"schemaVersion\":1,\"id\":\"broken\",\"name\":\"Broken\",\"enabled\":true," +
 			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[{\"type\":\"unknown\"}]}," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
-			"\"display\":{\"type\":\"overlay_text\",\"text\":\"warn\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}," +
+			"\"action\":{\"type\":\"overlay_text\",\"text\":\"warn\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}," +
 			"{\"schemaVersion\":1,\"id\":\"valid\",\"name\":\"Valid\",\"enabled\":true," +
 			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[]}," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
-			"\"display\":{\"type\":\"overlay_text\",\"text\":\"ok\",\"colorHex\":\"#00FF00\",\"showValue\":false}}" +
+			"\"action\":{\"type\":\"overlay_text\",\"text\":\"ok\",\"colorHex\":\"#00FF00\",\"showValue\":false}}" +
 			"]";
 
-		List<AuraDefinition> restored = store.deserialize(serialized);
+		List<RuleDefinition> restored = store.deserialize(serialized);
 
 		assertEquals(1, restored.size());
 		assertEquals("valid", restored.get(0).getId());
-		assertTrue(restored.get(0).getDisplay() instanceof OverlayTextDisplay);
+		assertTrue(restored.get(0).getAction() instanceof OverlayTextAction);
 	}
 
 	@Test
@@ -122,19 +122,19 @@ public class AuraDefinitionStoreTest
 	@Test
 	public void serializeSkipsNullEntriesAndUpgradesSchemaVersion()
 	{
-		AuraDefinition aura = new AuraDefinition();
-		aura.setSchemaVersion(0);
-		aura.setId("only-aura");
-		aura.setName("Only Aura");
-		aura.setDisplay(new OverlayTextDisplay());
+		RuleDefinition rule = new RuleDefinition();
+		rule.setSchemaVersion(0);
+		rule.setId("only-rule");
+		rule.setName("Only Rule");
+		rule.setAction(new OverlayTextAction());
 
-		String serialized = store.serialize(Arrays.asList(null, aura));
-		List<AuraDefinition> restored = store.deserialize(serialized);
+		String serialized = store.serialize(Arrays.asList(null, rule));
+		List<RuleDefinition> restored = store.deserialize(serialized);
 
-		assertEquals(AuraDefinitionStore.CURRENT_SCHEMA_VERSION, aura.getSchemaVersion());
+		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, rule.getSchemaVersion());
 		assertFalse(serialized.contains("null"));
 		assertEquals(1, restored.size());
-		assertEquals("only-aura", restored.get(0).getId());
+		assertEquals("only-rule", restored.get(0).getId());
 	}
 
 	@Test
@@ -151,28 +151,35 @@ public class AuraDefinitionStoreTest
 			"{\"schemaVersion\":99,\"id\":\"future\",\"name\":\"Future\",\"enabled\":true," +
 			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[]}," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
-			"\"display\":{\"type\":\"overlay_text\",\"text\":\"future\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
+			"\"action\":{\"type\":\"overlay_text\",\"text\":\"future\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
 			"]";
 
 		assertTrue(store.deserialize(serialized).isEmpty());
 	}
 
 	@Test
-	public void deserializeSkipsAurasMissingRequiredFields()
+	public void deserializeSkipsRulesMissingRequiredFields()
 	{
-		String missingDisplay = "[" +
-			"{\"schemaVersion\":1,\"id\":\"missing-display\",\"name\":\"Missing Display\",\"enabled\":true," +
+		String missingAction = "[" +
+			"{\"schemaVersion\":1,\"id\":\"missing-action\",\"name\":\"Missing Action\",\"enabled\":true," +
 			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[]}," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0}" +
 			"]";
 		String missingRootGroup = "[" +
 			"{\"schemaVersion\":1,\"id\":\"missing-root\",\"name\":\"Missing Root\",\"enabled\":true," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
+			"\"action\":{\"type\":\"overlay_text\",\"text\":\"warn\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
+			"]";
+		String legacyDisplayOnly = "[" +
+			"{\"schemaVersion\":1,\"id\":\"legacy-display\",\"name\":\"Legacy Display\",\"enabled\":true," +
+			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[]}," +
+			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
 			"\"display\":{\"type\":\"overlay_text\",\"text\":\"warn\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
 			"]";
 
-		assertTrue(store.deserialize(missingDisplay).isEmpty());
+		assertTrue(store.deserialize(missingAction).isEmpty());
 		assertTrue(store.deserialize(missingRootGroup).isEmpty());
+		assertTrue(store.deserialize(legacyDisplayOnly).isEmpty());
 	}
 
 	@Test
@@ -182,13 +189,13 @@ public class AuraDefinitionStoreTest
 			"{\"schemaVersion\":0,\"id\":\"legacy\",\"name\":\"Legacy\",\"enabled\":true," +
 			"\"rootGroup\":{\"type\":\"group\",\"logic\":\"AND\",\"children\":[]}," +
 			"\"activationMode\":\"WHILE_ACTIVE\",\"cooldownTicks\":0," +
-			"\"display\":{\"type\":\"overlay_text\",\"text\":\"legacy\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
+			"\"action\":{\"type\":\"overlay_text\",\"text\":\"legacy\",\"colorHex\":\"#FFFFFF\",\"showValue\":true}}" +
 			"]";
 
-		List<AuraDefinition> restored = store.deserialize(serialized);
+		List<RuleDefinition> restored = store.deserialize(serialized);
 
 		assertEquals(1, restored.size());
-		assertEquals(AuraDefinitionStore.CURRENT_SCHEMA_VERSION, restored.get(0).getSchemaVersion());
+		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, restored.get(0).getSchemaVersion());
 	}
 
 	private static ConditionGroup createConditionTree()

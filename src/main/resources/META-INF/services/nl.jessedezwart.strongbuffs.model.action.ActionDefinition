@@ -1,0 +1,3 @@
+nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction
+nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction
+nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction
