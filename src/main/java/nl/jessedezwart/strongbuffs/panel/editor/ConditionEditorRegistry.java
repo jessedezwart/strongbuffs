@@ -88,8 +88,10 @@ public class ConditionEditorRegistry
 		}
 
 		NumericConditionDefinition condition = (NumericConditionDefinition) conditionDefinition;
-		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		panel.setOpaque(true);
+		panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
 		for (EditorField field : condition.getEditorFields())
 		{
@@ -97,7 +99,7 @@ public class ConditionEditorRegistry
 
 			if (component instanceof javax.swing.JComboBox)
 			{
-				component.setPreferredSize(new Dimension(78, component.getPreferredSize().height));
+				component.setPreferredSize(new Dimension(56, component.getPreferredSize().height));
 				component.setMaximumSize(component.getPreferredSize());
 			}
 

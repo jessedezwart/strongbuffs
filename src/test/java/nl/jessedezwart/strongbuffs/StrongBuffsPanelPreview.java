@@ -46,7 +46,7 @@ public class StrongBuffsPanelPreview
 		JFrame frame = new JFrame("Strong Buffs UI Preview");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setContentPane(panel.getWrappedPanel());
-		frame.setSize(320, 760);
+		frame.setSize(242, 760);
 		frame.setLocationByPlatform(true);
 		frame.setVisible(true);
 	}

@@ -1,7 +1,9 @@
 package nl.jessedezwart.strongbuffs.panel.view;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -24,12 +26,20 @@ public class ConditionGroupPanel extends JPanel
 	private final Runnable onLiveChange;
 	private final Runnable onStructureChange;
 	private final Runnable onRemove;
+	private final int depth;
 
 	public ConditionGroupPanel(ConditionGroup group, boolean root, ConditionEditorRegistry conditionRegistry,
 			Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove)
 	{
+		this(group, root, root ? 0 : 1, conditionRegistry, onLiveChange, onStructureChange, onRemove);
+	}
+
+	private ConditionGroupPanel(ConditionGroup group, boolean root, int depth, ConditionEditorRegistry conditionRegistry,
+			Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove)
+	{
 		this.group = group;
 		this.root = root;
+		this.depth = depth;
 		this.conditionRegistry = conditionRegistry;
 		this.onLiveChange = onLiveChange;
 		this.onStructureChange = onStructureChange;
@@ -60,17 +70,20 @@ public class ConditionGroupPanel extends JPanel
 	{
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(ColorScheme.MEDIUM_GRAY_COLOR),
-				BorderFactory.createEmptyBorder(6, 6, 6, 6)));
+		setAlignmentX(LEFT_ALIGNMENT);
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+		setBorder(createGroupBorder());
 
 		add(createHeader());
 
-		for (ConditionNode child : group.getChildren())
+		for (int i = 0; i < group.getChildren().size(); i++)
 		{
+			ConditionNode child = group.getChildren().get(i);
+
 			if (child instanceof ConditionGroup)
 			{
 				ConditionGroup childGroup = (ConditionGroup) child;
-				ConditionGroupPanel childPanel = new ConditionGroupPanel(childGroup, false, conditionRegistry,
+				ConditionGroupPanel childPanel = new ConditionGroupPanel(childGroup, false, depth + 1, conditionRegistry,
 						onLiveChange, onStructureChange, () -> removeChild(childGroup));
 				childPanel.setAlignmentX(LEFT_ALIGNMENT);
 				add(childPanel);
@@ -85,34 +98,41 @@ public class ConditionGroupPanel extends JPanel
 				add(rowPanel);
 			}
 
-			add(Box.createVerticalStrut(6));
+			if (i < group.getChildren().size() - 1)
+			{
+				add(Box.createVerticalStrut(4));
+			}
 		}
 
+		add(Box.createVerticalStrut(4));
 		add(createFooter());
 	}
 
 	private JPanel createHeader()
 	{
-		JPanel header = new JPanel(new BorderLayout());
+		JPanel header = new JPanel(new BorderLayout(6, 0));
 		header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-
-		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		left.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
 		JComboBox<ConditionLogic> logicComboBox = new JComboBox<>(ConditionLogic.values());
 		logicComboBox.setSelectedItem(group.getLogic());
+		logicComboBox.setPreferredSize(new Dimension(72, logicComboBox.getPreferredSize().height));
+		logicComboBox.setMaximumSize(logicComboBox.getPreferredSize());
 		logicComboBox.addActionListener(event ->
 		{
 			group.setLogic((ConditionLogic) logicComboBox.getSelectedItem());
 			onLiveChange.run();
 		});
-		left.add(logicComboBox);
-		header.add(left, BorderLayout.WEST);
+		header.add(logicComboBox, BorderLayout.WEST);
 
 		if (!root && onRemove != null)
 		{
-			JButton removeGroupButton = new JButton("Remove group");
+			JButton removeGroupButton = new JButton("X");
+			removeGroupButton.setToolTipText("Remove group");
+			removeGroupButton.setFocusable(false);
 			removeGroupButton.addActionListener(event -> onRemove.run());
+			configureCompactButton(removeGroupButton);
 			header.add(removeGroupButton, BorderLayout.EAST);
 		}
 
@@ -121,19 +141,39 @@ public class ConditionGroupPanel extends JPanel
 
 	private JPanel createFooter()
 	{
-		JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		JPanel footer = new JPanel(new GridLayout(1, 2, 6, 0));
 		footer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		footer.setAlignmentX(LEFT_ALIGNMENT);
 
-		JButton addConditionButton = new JButton("Add condition");
+		JButton addConditionButton = new JButton(root ? "+ Condition" : "+ Cond");
 		addConditionButton.addActionListener(event -> addCondition());
 		footer.add(addConditionButton);
 
-		footer.add(Box.createHorizontalStrut(6));
-
-		JButton addGroupButton = new JButton("Add group");
+		JButton addGroupButton = new JButton(root ? "+ Group" : "+ Grp");
 		addGroupButton.addActionListener(event -> addGroup());
 		footer.add(addGroupButton);
+		footer.setMaximumSize(new Dimension(Integer.MAX_VALUE, footer.getPreferredSize().height));
 		return footer;
+	}
+
+	private javax.swing.border.Border createGroupBorder()
+	{
+		if (root)
+		{
+			return BorderFactory.createEmptyBorder();
+		}
+
+		Color borderColor = depth == 1 ? ColorScheme.MEDIUM_GRAY_COLOR : ColorScheme.DARKER_GRAY_HOVER_COLOR;
+		return BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(0, 1, 0, 0, borderColor),
+				BorderFactory.createEmptyBorder(0, 6, 0, 0));
+	}
+
+	private static void configureCompactButton(JButton button)
+	{
+		button.setMargin(new java.awt.Insets(2, 4, 2, 4));
+		button.setPreferredSize(new Dimension(28, button.getPreferredSize().height));
+		button.setMaximumSize(button.getPreferredSize());
 	}
 
 	private void replaceChild(ConditionDefinition existingCondition, ConditionDefinition replacement)

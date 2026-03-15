@@ -95,7 +95,7 @@ final class EditorFieldComponentFactory
 	{
 		JSpinner spinner = new JSpinner(new SpinnerNumberModel(field.getGetter().get().intValue(), field.getMinimumValue(),
 			field.getMaximumValue(), field.getStepSize()));
-		spinner.setPreferredSize(new Dimension(64, spinner.getPreferredSize().height));
+		spinner.setPreferredSize(new Dimension(48, spinner.getPreferredSize().height));
 		spinner.setMaximumSize(spinner.getPreferredSize());
 		spinner.addChangeListener(event ->
 		{
@@ -108,7 +108,7 @@ final class EditorFieldComponentFactory
 			return spinner;
 		}
 
-		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		panel.add(spinner);
 

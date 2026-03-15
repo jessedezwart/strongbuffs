@@ -23,6 +23,7 @@ public final class ActionEditorSupport
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 		return panel;
 	}
 
@@ -30,11 +31,13 @@ public final class ActionEditorSupport
 	{
 		JPanel row = new JPanel(new BorderLayout(8, 0));
 		row.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
 		JLabel title = new JLabel(label);
 		title.setForeground(ColorScheme.TEXT_COLOR);
-		title.setPreferredSize(new Dimension(60, title.getPreferredSize().height));
+		title.setPreferredSize(new Dimension(52, title.getPreferredSize().height));
 		row.add(title, BorderLayout.WEST);
+		component.setMaximumSize(new Dimension(Integer.MAX_VALUE, component.getPreferredSize().height));
 		row.add(component, BorderLayout.CENTER);
 		return row;
 	}

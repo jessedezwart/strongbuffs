@@ -1,7 +1,7 @@
 package nl.jessedezwart.strongbuffs.panel.view;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
@@ -9,6 +9,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
@@ -39,13 +40,14 @@ public class ConditionRowPanel extends JPanel
 
 	private void build()
 	{
-		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 		setAlignmentX(LEFT_ALIGNMENT);
 
-		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		left.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		JPanel header = new JPanel(new BorderLayout(6, 0));
+		header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		header.setAlignmentX(LEFT_ALIGNMENT);
 
 		JComboBox<Class<? extends NumericConditionDefinition>> typeComboBox = new JComboBox<>(
 				conditionRegistry.getConditionClasses().toArray(new Class[0]));
@@ -54,8 +56,8 @@ public class ConditionRowPanel extends JPanel
 						value == null ? "" : conditionRegistry.getByConditionClass(value).getEditorLabel(), index,
 						isSelected, cellHasFocus));
 		typeComboBox.setSelectedItem(condition.getClass());
-		typeComboBox.setPreferredSize(new Dimension(120, typeComboBox.getPreferredSize().height));
-		typeComboBox.setMaximumSize(typeComboBox.getPreferredSize());
+		typeComboBox.setPreferredSize(new Dimension(112, typeComboBox.getPreferredSize().height));
+		typeComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, typeComboBox.getPreferredSize().height));
 		typeComboBox.addActionListener(event ->
 		{
 			Class<? extends NumericConditionDefinition> selectedClass = (Class<? extends NumericConditionDefinition>) typeComboBox
@@ -71,26 +73,29 @@ public class ConditionRowPanel extends JPanel
 			onReplace.accept(conditionRegistry.createDefaultCondition(selectedClass));
 			onStructureChange.run();
 		});
-		left.add(typeComboBox);
-		add(left);
-		add(Box.createHorizontalStrut(6));
+		header.add(typeComboBox, BorderLayout.CENTER);
 
-		JPanel editorPanel = createEditorPanel();
-		editorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, editorPanel.getPreferredSize().height));
-		add(editorPanel);
-		add(Box.createHorizontalStrut(6));
-
-		JButton removeButton = new JButton("Remove");
+		JButton removeButton = new JButton("X");
+		removeButton.setToolTipText("Remove condition");
+		removeButton.setFocusable(false);
+		removeButton.setMargin(new java.awt.Insets(2, 4, 2, 4));
 		removeButton.addActionListener(event -> onRemove.run());
+		removeButton.setPreferredSize(new Dimension(28, removeButton.getPreferredSize().height));
 		removeButton.setMaximumSize(removeButton.getPreferredSize());
-		add(removeButton);
+		header.add(removeButton, BorderLayout.EAST);
+		header.setMaximumSize(new Dimension(Integer.MAX_VALUE, header.getPreferredSize().height));
+		add(header);
+
+		add(Box.createVerticalStrut(4));
+
+		JComponent editorPanel = createEditorPanel();
+		editorPanel.setAlignmentX(LEFT_ALIGNMENT);
+		add(editorPanel);
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, getPreferredSize().height));
 	}
 
-	private JPanel createEditorPanel()
+	private JComponent createEditorPanel()
 	{
-		JPanel center = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-		center.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		center.add(conditionRegistry.createEditor(condition, onLiveChange));
-		return center;
+		return conditionRegistry.createEditor(condition, onLiveChange);
 	}
 }

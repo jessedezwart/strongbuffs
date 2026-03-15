@@ -2,12 +2,14 @@ package nl.jessedezwart.strongbuffs.panel.view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,18 +31,29 @@ public class RuleListPanel extends JPanel
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setBorder(BorderFactory.createTitledBorder("Rules"));
 
-		JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+		JPanel actions = new JPanel();
+		actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
 		actions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		JButton newButton = new JButton("New Rule");
 		newButton.addActionListener(event -> onCreateRule.run());
+		newButton.setAlignmentX(LEFT_ALIGNMENT);
+		newButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, newButton.getPreferredSize().height));
 		actions.add(newButton);
+		actions.add(Box.createVerticalStrut(6));
+
+		JPanel secondaryActions = new JPanel(new GridLayout(1, 2, 6, 0));
+		secondaryActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		duplicateButton.addActionListener(event -> onDuplicateRule.run());
-		actions.add(duplicateButton);
+		secondaryActions.add(duplicateButton);
 
 		deleteButton.addActionListener(event -> onDeleteRule.run());
-		actions.add(deleteButton);
+		secondaryActions.add(deleteButton);
+
+		secondaryActions.setAlignmentX(LEFT_ALIGNMENT);
+		secondaryActions.setMaximumSize(new Dimension(Integer.MAX_VALUE, secondaryActions.getPreferredSize().height));
+		actions.add(secondaryActions);
 
 		add(actions, BorderLayout.NORTH);
 

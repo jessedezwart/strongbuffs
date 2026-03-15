@@ -77,6 +77,7 @@ public class RuleEditPanel extends JPanel
 		JPanel content = new JPanel();
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		content.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
 
 		content.add(createBasicsSection());
 		content.add(Box.createVerticalStrut(8));
@@ -149,6 +150,7 @@ public class RuleEditPanel extends JPanel
 		javax.swing.JCheckBox enabledCheckBox = new javax.swing.JCheckBox("Enabled", draft.isEnabled());
 		enabledCheckBox.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		enabledCheckBox.setForeground(ColorScheme.TEXT_COLOR);
+		enabledCheckBox.setAlignmentX(LEFT_ALIGNMENT);
 		enabledCheckBox.addActionListener(event ->
 		{
 			draft.setEnabled(enabledCheckBox.isSelected());
@@ -167,6 +169,7 @@ public class RuleEditPanel extends JPanel
 		ConditionGroupPanel groupPanel = new ConditionGroupPanel(draft.getRootGroup(), true, conditionRegistry,
 				onLiveChange, onStructureChange, null);
 		groupPanel.setAlignmentX(LEFT_ALIGNMENT);
+		groupPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		section.add(groupPanel);
 		return section;
 	}
@@ -250,12 +253,16 @@ public class RuleEditPanel extends JPanel
 			onStructureChange.run();
 		});
 		footer.add(cancelButton);
+		footer.setMaximumSize(new Dimension(Integer.MAX_VALUE, footer.getPreferredSize().height));
 		return footer;
 	}
 
 	private <T extends ActionDefinition> JComponent createActionEditor(ActionDefinition actionDefinition)
 	{
-		return actionRegistry.createEditor(actionDefinition, onLiveChange);
+		JComponent component = actionRegistry.createEditor(actionDefinition, onLiveChange);
+		component.setAlignmentX(LEFT_ALIGNMENT);
+		component.setMaximumSize(new Dimension(Integer.MAX_VALUE, component.getPreferredSize().height));
+		return component;
 	}
 
 	private static JPanel createSection(String title)
@@ -263,8 +270,17 @@ public class RuleEditPanel extends JPanel
 		JPanel section = new JPanel();
 		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
 		section.setBackground(ColorScheme.DARK_GRAY_COLOR);
-		section.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(title),
-				BorderFactory.createEmptyBorder(4, 0, 4, 0)));
+		section.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(ColorScheme.MEDIUM_GRAY_COLOR),
+				BorderFactory.createEmptyBorder(6, 6, 6, 6)));
+		section.setAlignmentX(LEFT_ALIGNMENT);
+		section.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+		JLabel titleLabel = new JLabel(title);
+		titleLabel.setFont(FontManager.getDefaultBoldFont());
+		titleLabel.setForeground(ColorScheme.TEXT_COLOR);
+		titleLabel.setAlignmentX(LEFT_ALIGNMENT);
+		section.add(titleLabel);
+		section.add(Box.createVerticalStrut(6));
 		return section;
 	}
 
