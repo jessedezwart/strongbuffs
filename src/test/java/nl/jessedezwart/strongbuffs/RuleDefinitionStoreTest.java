@@ -6,15 +6,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import org.junit.Test;
@@ -117,6 +121,40 @@ public class RuleDefinitionStoreTest
 		assertTrue(store.deserialize(null).isEmpty());
 		assertTrue(store.deserialize("").isEmpty());
 		assertTrue(store.deserialize("   ").isEmpty());
+	}
+
+	@Test
+	public void serializeAndDeserializeSupportsAllRegisteredConditionDefinitions()
+	{
+		RuleDefinition rule = new RuleDefinition();
+		rule.setId("all-conditions");
+		rule.setName("All Conditions");
+
+		ConditionGroup rootGroup = new ConditionGroup();
+
+		for (Class<? extends ConditionDefinition> conditionClass : DefinitionRegistry.getConditionDefinitions())
+		{
+			ConditionDefinition definition = DefinitionRegistry.createCondition(conditionClass);
+
+			if (definition instanceof ItemInInventoryCondition)
+			{
+				((ItemInInventoryCondition) definition).setItemName("Shark");
+			}
+
+			rootGroup.getChildren().add(definition);
+		}
+
+		rule.setRootGroup(rootGroup);
+		rule.setAction(new OverlayTextAction());
+
+		String serialized = store.serialize(List.of(rule));
+		List<RuleDefinition> restored = store.deserialize(serialized);
+
+		assertEquals(1, restored.size());
+		assertEquals(
+			DefinitionRegistry.getConditionDefinitions().stream().map(Class::getName).collect(Collectors.toList()),
+			restored.get(0).getRootGroup().getChildren().stream().map(child -> child.getClass().getName())
+				.collect(Collectors.toList()));
 	}
 
 	@Test

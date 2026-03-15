@@ -10,11 +10,10 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
-import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import net.runelite.client.ui.ColorScheme;
 
@@ -49,7 +48,7 @@ public class ConditionGroupPanel extends JPanel
 
 	void addCondition()
 	{
-		Class<? extends NumericConditionDefinition> conditionClass = conditionRegistry.getConditionClasses().get(0);
+		Class<? extends ConditionDefinition> conditionClass = conditionRegistry.getConditionClasses().get(0);
 		group.getChildren().add(conditionRegistry.createDefaultCondition(conditionClass));
 		onStructureChange.run();
 	}

@@ -18,4 +18,21 @@ public enum ComparisonOperator
 	{
 		return editorLabel;
 	}
+
+	public boolean matches(int actualValue, int thresholdValue)
+	{
+		switch (this)
+		{
+			case LESS_THAN:
+				return actualValue < thresholdValue;
+			case LESS_THAN_OR_EQUAL:
+				return actualValue <= thresholdValue;
+			case GREATER_THAN:
+				return actualValue > thresholdValue;
+			case GREATER_THAN_OR_EQUAL:
+				return actualValue >= thresholdValue;
+			default:
+				return false;
+		}
+	}
 }

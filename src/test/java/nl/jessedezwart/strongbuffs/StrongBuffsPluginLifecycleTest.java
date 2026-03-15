@@ -18,6 +18,7 @@ import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
+import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
 import org.junit.Test;
 
 public class StrongBuffsPluginLifecycleTest
@@ -31,6 +32,7 @@ public class StrongBuffsPluginLifecycleTest
 
 		setField(plugin, "clientToolbar", clientToolbar);
 		setField(plugin, "strongBuffsPanel", panel);
+		setField(plugin, "runtimeConditionTracker", new TestRuntimeConditionTracker());
 
 		plugin.startUp();
 		SwingUtilities.invokeAndWait(() ->
@@ -49,6 +51,24 @@ public class StrongBuffsPluginLifecycleTest
 
 		assertEquals(0, getSidebarEntries(clientToolbar).size());
 		assertNull(getField(plugin, "navigationButton"));
+	}
+
+	private static final class TestRuntimeConditionTracker extends RuntimeConditionTracker
+	{
+		private TestRuntimeConditionTracker()
+		{
+			super(null, null, null, null);
+		}
+
+		@Override
+		public void startUp()
+		{
+		}
+
+		@Override
+		public void shutDown()
+		{
+		}
 	}
 
 	private static Object getField(Object target, String name) throws Exception

@@ -7,17 +7,17 @@ import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
 import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @EqualsAndHashCode(callSuper = true)
-public class SpecialAttackCondition extends NumericConditionDefinition
+public class RunEnergyCondition extends NumericConditionDefinition
 {
-	public SpecialAttackCondition()
+	public RunEnergyCondition()
 	{
-		super(ComparisonOperator.GREATER_THAN_OR_EQUAL);
+		super(ComparisonOperator.LESS_THAN_OR_EQUAL);
 	}
 
 	@Override
 	public String getEditorLabel()
 	{
-		return "Special attack";
+		return "Run energy";
 	}
 
 	@Override
@@ -41,24 +41,24 @@ public class SpecialAttackCondition extends NumericConditionDefinition
 	@Override
 	protected NumericConditionDefinition createCopy()
 	{
-		return new SpecialAttackCondition();
+		return new RunEnergyCondition();
 	}
 
 	@Override
 	protected int getValue(RuntimeState state)
 	{
-		return state.getVars().getSpecialAttackPercent();
+		return state.getLocation().getRunEnergyPercent();
 	}
 
 	@Override
 	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
 	{
-		builder.requireSpecialAttack();
+		builder.requireRunEnergy();
 	}
 
 	@Override
 	public String getTypeId()
 	{
-		return "spec";
+		return "run_energy";
 	}
 }

@@ -3,6 +3,8 @@ package nl.jessedezwart.strongbuffs.model.condition.impl;
 import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
+import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.RuntimeState;
 
 @EqualsAndHashCode(callSuper = true)
 public class HpCondition extends NumericConditionDefinition
@@ -40,6 +42,18 @@ public class HpCondition extends NumericConditionDefinition
 	protected NumericConditionDefinition createCopy()
 	{
 		return new HpCondition();
+	}
+
+	@Override
+	protected int getValue(RuntimeState state)
+	{
+		return state.getSkills().getHitpoints();
+	}
+
+	@Override
+	public void contributeRequirements(RuntimeConditionRequirements.Builder builder)
+	{
+		builder.requireHitpoints();
 	}
 
 	@Override

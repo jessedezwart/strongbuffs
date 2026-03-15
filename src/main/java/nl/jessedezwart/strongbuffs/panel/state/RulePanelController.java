@@ -18,6 +18,7 @@ import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
+import nl.jessedezwart.strongbuffs.runtime.RuntimeConditionTracker;
 
 /**
  * Owns persisted rule snapshots, the currently selected draft, validation, and unsaved-changes resolution.
@@ -34,6 +35,7 @@ public class RulePanelController
 	private final RuleDefinitionStore store;
 	private final ConditionEditorRegistry conditionRegistry;
 	private final ActionEditorRegistry actionRegistry;
+	private final RuntimeConditionTracker runtimeConditionTracker;
 
 	private final List<RuleDefinition> persistedRules = new ArrayList<>();
 
@@ -42,13 +44,20 @@ public class RulePanelController
 	private RuleValidationResult validationResult = RuleValidationResult.valid();
 	private PendingAction pendingAction;
 
-	@Inject
 	public RulePanelController(RuleDefinitionStore store, ConditionEditorRegistry conditionRegistry,
 		ActionEditorRegistry actionRegistry)
+	{
+		this(store, conditionRegistry, actionRegistry, null);
+	}
+
+	@Inject
+	public RulePanelController(RuleDefinitionStore store, ConditionEditorRegistry conditionRegistry,
+		ActionEditorRegistry actionRegistry, RuntimeConditionTracker runtimeConditionTracker)
 	{
 		this.store = store;
 		this.conditionRegistry = conditionRegistry;
 		this.actionRegistry = actionRegistry;
+		this.runtimeConditionTracker = runtimeConditionTracker;
 		reload();
 	}
 
@@ -56,6 +65,7 @@ public class RulePanelController
 	{
 		persistedRules.clear();
 		persistedRules.addAll(store.load());
+		synchronizeRuntimeTracker();
 		draft = null;
 		selectedRuleId = null;
 		validationResult = RuleValidationResult.valid();
@@ -233,6 +243,7 @@ public class RulePanelController
 		}
 
 		store.save(new ArrayList<>(persistedRules));
+		synchronizeRuntimeTracker();
 		draft = RuleDraft.fromRuleDefinition(savedRule);
 		selectedRuleId = savedRule.getId();
 		validationResult = RuleValidationResult.valid();
@@ -335,6 +346,7 @@ public class RulePanelController
 
 		persistedRules.remove(existingIndex);
 		store.save(new ArrayList<>(persistedRules));
+		synchronizeRuntimeTracker();
 		draft = null;
 		selectedRuleId = null;
 		validationResult = RuleValidationResult.valid();
@@ -400,6 +412,15 @@ public class RulePanelController
 		{
 			errors.put(FIELD_CONDITIONS, "Add at least one condition.");
 		}
+		else
+		{
+			String conditionError = validateConditions(draft.getRootGroup());
+
+			if (conditionError != null)
+			{
+				errors.put(FIELD_CONDITIONS, conditionError);
+			}
+		}
 
 		if (draft.getCooldownTicks() < 0)
 		{
@@ -408,6 +429,34 @@ public class RulePanelController
 
 		validateAction(errors, draft.getAction());
 		return RuleValidationResult.of(errors);
+	}
+
+	private static String validateConditions(ConditionGroup group)
+	{
+		for (ConditionNode child : group.getChildren())
+		{
+			if (child instanceof ConditionGroup)
+			{
+				String nestedError = validateConditions((ConditionGroup) child);
+
+				if (nestedError != null)
+				{
+					return nestedError;
+				}
+
+				continue;
+			}
+
+			Map<String, String> conditionErrors = new LinkedHashMap<>();
+			((ConditionDefinition) child).validate(conditionErrors, FIELD_CONDITIONS);
+
+			if (!conditionErrors.isEmpty())
+			{
+				return conditionErrors.values().iterator().next();
+			}
+		}
+
+		return null;
 	}
 
 	private void validateAction(Map<String, String> errors, ActionDefinition actionDefinition)
@@ -443,6 +492,14 @@ public class RulePanelController
 	{
 		String baseName = name == null || name.trim().isEmpty() ? "New Rule" : name.trim();
 		return baseName + " Copy";
+	}
+
+	private void synchronizeRuntimeTracker()
+	{
+		if (runtimeConditionTracker != null)
+		{
+			runtimeConditionTracker.setRules(new ArrayList<>(persistedRules));
+		}
 	}
 
 	private interface PendingAction

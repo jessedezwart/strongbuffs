@@ -6,22 +6,28 @@ import static org.junit.Assert.assertTrue;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInInstanceCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerActiveCondition;
 import org.junit.Test;
 
 public class RegistryTest
 {
 	@Test
-	public void conditionRegistryExposesOnlyApprovedVerticalSlice()
+	public void conditionRegistryExposesApprovedConditionCatalog()
 	{
 		ConditionEditorRegistry registry = new ConditionEditorRegistry();
 
-		assertEquals(3, registry.getConditionClasses().size());
+		assertEquals(15, registry.getConditionClasses().size());
 		assertTrue(registry.getByConditionClass(HpCondition.class) != null);
 		assertTrue(registry.getByConditionClass(PrayerPointsCondition.class) != null);
 		assertTrue(registry.getByConditionClass(SpecialAttackCondition.class) != null);
+		assertTrue(registry.getByConditionClass(PrayerActiveCondition.class) != null);
+		assertTrue(registry.getByConditionClass(ItemInInventoryCondition.class) != null);
+		assertTrue(registry.getByConditionClass(PlayerInInstanceCondition.class) != null);
 	}
 
 	@Test

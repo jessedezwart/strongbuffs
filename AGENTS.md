@@ -37,9 +37,9 @@ All conditions track the **local player's own state only**. No other player data
 
 - Persist **definitions**, not live runtime objects
 - Keep RuneLite API access in runtime services only
-- Evaluate rules from **event-driven cached state**, not direct ad hoc reads everywhere
+- Evaluate rules from **cached runtime state**, not direct ad hoc reads from persisted model classes
 - Support both **steady-state** and **transition-based** activations
-- Keep rendering concerns separated by display type and lifecycle
+- Keep editor, persistence, runtime checks, and rendering concerns separated
 - Fail closed when data is invalid, unknown, or out of policy
 
 ### Overview
@@ -47,20 +47,27 @@ All conditions track the **local player's own state only**. No other player data
 ```
 RuleDefinition          <- one user-created rule (persisted as JSON)
   |- rootGroup          <- tree of ConditionGroup / ConditionDefinition nodes
-  |- display            <- typed DisplayDefinition
+  |- action             <- typed ActionDefinition
   |- activationMode     <- WHILE_ACTIVE / ON_ENTER / ON_EXIT
   `- cooldownTicks      <- optional activation suppression
 
 RuleDefinitionStore     <- serializes versioned RuleDefinition list to/from RuneLite config
-RuleCompiler            <- converts persisted definitions into compiled runtime evaluators
-RuntimeState            <- cached local-player state updated from RuneLite events only
-TriggerIndex            <- maps event sources to affected compiled rules
-RuleEngine              <- evaluates rules, tracks active state, handles transitions/cooldowns
-DisplayController(s)    <- overlay / infobox / inventory / sound outputs driven by RuleEngine
+DefinitionRegistry      <- approved condition/action model catalog
+ConditionEditorRegistry <- builds condition editor metadata/components
+ActionEditorRegistry    <- builds action editor metadata/components
+RulePanelController     <- owns persisted rules, draft state, and validation
 StrongBuffsPanel        <- PluginPanel sidebar: list/create/edit/delete rules
-StrongBuffsPlugin       <- wires everything together
-StrongBuffsConfig       <- global settings (enable toggle, global volume, etc.)
+RuntimeState            <- cached local-player state for runtime evaluation
+ConditionChecker        <- evaluates condition trees against RuntimeState
+StrongBuffsPlugin       <- wires toolbar + panel
+StrongBuffsConfig       <- plugin config stub
 ```
+
+### Current Repo State
+
+- The repo currently has persistence, editor UI, model validation, and a runtime condition-check layer.
+- It does **not** yet have a full event-driven rule engine, trigger index, compiled-rule layer, overlays, or sound playback controllers.
+- Current runtime work should build on `runtime/RuntimeState` and `runtime/ConditionChecker`.
 
 ### Package Structure
 
@@ -68,61 +75,68 @@ StrongBuffsConfig       <- global settings (enable toggle, global volume, etc.)
 nl.jessedezwart.strongbuffs/
   StrongBuffsPlugin.java
   StrongBuffsConfig.java
-  RuleCompiler.java
-  RuleEngine.java
   RuleDefinitionStore.java
-  runtime/
-    RuntimeState.java              <- local-player snapshot/cache, updated on the client thread
-    TriggerIndex.java              <- maps varbits/skills/containers/ticks to affected rules
-    ActiveRuleState.java           <- active/inactive, enter/exit, cooldown tracking
   model/
-    RuleDefinition.java
-    ActivationMode.java            <- WHILE_ACTIVE, ON_ENTER, ON_EXIT
-    ConditionNode.java             <- marker interface for persisted condition definitions
-    ConditionGroup.java            <- AND/OR of List<ConditionNode> children
-    ConditionLogic.java            <- enum: AND, OR
+    action/
+      ActionDefinition.java
+      impl/
+        OverlayTextAction.java
+        ScreenFlashAction.java
+        SoundAlertAction.java
     condition/
-      ConditionDefinition.java     <- abstract persisted leaf node
-      HpCondition.java             <- #9
-      PrayerPointsCondition.java   <- #1
-      PrayerActiveCondition.java   <- #2
-      SpecCondition.java           <- #3
-      RunEnergyCondition.java      <- #4
-      PoisonCondition.java         <- #5
-      WildernessCondition.java     <- #6
-      SlayerTaskCondition.java     <- #7
-      QuestProgressCondition.java  <- #8
-      SkillLevelCondition.java     <- #10 (real level)
-      BoostedSkillCondition.java   <- #11
-      XpGainCondition.java         <- #12
-      ItemInInventoryCondition.java<- #13
-      ItemCountCondition.java      <- #14
-      ItemEquippedCondition.java   <- #15
-      GroundItemCondition.java     <- #16
-      PlayerInZoneCondition.java   <- #17
-      PlayerInInstanceCondition.java <- #18
-    display/
-      DisplayDefinition.java
-      OverlayTextDisplay.java
-      ColoredIconDisplay.java
-      ProgressBarDisplay.java
-      InfoBoxDisplay.java
-      ScreenFlashDisplay.java
-      InventoryHighlightDisplay.java
-      SoundAlertDisplay.java
-  overlay/
-    RuleOverlay.java
-    InventoryHighlightOverlay.java
-  infobox/
-    RuleInfoBoxManager.java
-  sound/
-    RuleSoundController.java
+      ComparisonOperator.java
+      ConditionDefinition.java
+      ConditionEditorOptions.java
+      NumericConditionDefinition.java
+      impl/
+        HpCondition.java
+        PrayerPointsCondition.java
+        PrayerActiveCondition.java
+        SpecialAttackCondition.java
+        RunEnergyCondition.java
+        PoisonCondition.java
+        SlayerTaskCondition.java
+        SkillLevelCondition.java
+        XpGainCondition.java
+        ItemInInventoryCondition.java
+        ItemCountCondition.java
+        ItemEquippedCondition.java
+        GroundItemCondition.java
+        PlayerInZoneCondition.java
+        PlayerInInstanceCondition.java
+      tree/
+        ConditionNode.java
+        ConditionGroup.java
+        ConditionLogic.java
+    editor/
+      EditorField.java
+    registry/
+      DefinitionRegistry.java
+    rule/
+      RuleDefinition.java
+      ActivationMode.java
   panel/
-    StrongBuffsPanel.java
-    RuleListPanel.java
-    RuleEditPanel.java
-    ConditionGroupPanel.java
-    ConditionRowPanel.java
+    editor/
+      ActionEditorRegistry.java
+      ActionEditorSupport.java
+      ConditionEditorRegistry.java
+      EditorFieldComponentFactory.java
+    state/
+      RuleDraft.java
+      RulePanelController.java
+      RuleValidationResult.java
+      RuleDescriptions.java
+      RuleControllerActionResult.java
+      UnsavedResolution.java
+    view/
+      StrongBuffsPanel.java
+      RuleListPanel.java
+      RuleEditPanel.java
+      ConditionGroupPanel.java
+      ConditionRowPanel.java
+  runtime/
+    RuntimeState.java
+    ConditionChecker.java
 ```
 
 ### Data Model
@@ -138,7 +152,7 @@ class RuleDefinition
     ConditionGroup rootGroup;
     ActivationMode activationMode;
     int cooldownTicks;          // optional; 0 = none
-    DisplayDefinition display;
+    ActionDefinition action;
 }
 
 // Persisted condition tree node - AND/OR group
@@ -153,17 +167,26 @@ abstract class ConditionDefinition implements ConditionNode
 {
 }
 
-// What to render when the rule fires
-abstract class DisplayDefinition
+// What to do when the rule fires
+abstract class ActionDefinition
 {
 }
 
-// Runtime-only compiled rule
-class CompiledRule
+// Runtime snapshot used by condition evaluation
+class RuntimeState
 {
-    RuleDefinition definition;
-    RuntimeConditionEvaluator evaluator;
-    DisplayController displayController;
+    int hitpoints;
+    int prayerPoints;
+    int specialAttackPercent;
+    int runEnergyPercent;
+    PoisonState poisonState;
+    Map<Skill, Integer> realSkillLevels;
+    Set<Prayer> activePrayers;
+    Map<String, Integer> inventoryItemCounts;
+    Set<String> equippedItemNames;
+    Set<String> nearbyGroundItemNames;
+    WorldPoint playerLocation;
+    boolean inInstance;
 }
 ```
 
@@ -172,7 +195,7 @@ class CompiledRule
 rootGroup (AND)
   |- PrayerPointsCondition (< 10)
   `- nestedGroup (OR)
-     |- WildernessCondition (any level)
+     |- PrayerActiveCondition (Protect from Magic active)
      `- PlayerInZoneCondition (Edgeville area)
 ```
 
@@ -180,14 +203,12 @@ rootGroup (AND)
 
 Persisted definitions are pure data. They are safe to serialize, diff, validate, and migrate.
 
-Runtime evaluation is separate:
+Current runtime evaluation is split into:
 
-- `RuntimeState` caches only the local player's approved state
-- `RuleCompiler` converts `RuleDefinition` into `CompiledRule`
-- `CompiledRule` contains pre-resolved evaluators, trigger metadata, and renderer bindings
-- No persisted model class may directly call RuneLite APIs
+- `RuntimeState`: cached local-player state only
+- `ConditionChecker`: evaluates a `ConditionDefinition` or `ConditionGroup` against `RuntimeState`
 
-This separation keeps client-thread concerns and RuneLite API coupling out of the saved config format.
+The full event-driven rule engine described earlier in this file is still planned work, not current repo state.
 
 ### Activation Semantics
 
@@ -211,7 +232,7 @@ All rules are serialized as a JSON array using Gson (bundled with RuneLite) and 
 - Config key: `rules`
 - Format: `[{ "id": "...", "name": "...", ... }, ...]`
 
-`RuleDefinitionStore` owns all serialize/deserialize logic. Polymorphic Gson type adapters handle `ConditionNode` and `DisplayDefinition` subtypes.
+`RuleDefinitionStore` owns all serialize/deserialize logic. Polymorphic Gson type adapters handle `ConditionNode` and `ActionDefinition` subtypes.
 
 Persistence rules:
 
@@ -224,68 +245,43 @@ On `startUp`: load and deserialize from config. On any save: serialize and write
 
 ## Condition Reference
 
-All 18 conditions. All track the local player only.
+Current repo condition set: 15 conditions. All track the local player only.
 
-### `VarbitChanged` / `VarPlayerChanged`
+| # | Class | What it checks | Intended runtime source |
+|---|-------|---------------|-------------------------|
+| 1 | `HpCondition` | HP points below/above X | boosted HP level |
+| 2 | `PrayerPointsCondition` | Prayer points below/above X | prayer points |
+| 3 | `PrayerActiveCondition` | Specific prayer active/inactive | prayer varbits |
+| 4 | `SpecialAttackCondition` | Special attack energy below/above X% | spec varp |
+| 5 | `RunEnergyCondition` | Run energy below/above X% | run energy varp |
+| 6 | `PoisonCondition` | Poison or venom active | poison/venom state |
+| 7 | `SlayerTaskCondition` | Task active or kills remaining check | slayer vars |
+| 8 | `SkillLevelCondition` | Real skill level above/below X | real skill level |
+| 9 | `XpGainCondition` | XP gained in a specific skill | `StatChanged` |
+| 10 | `ItemInInventoryCondition` | Item present in inventory by name | inventory container |
+| 11 | `ItemCountCondition` | Inventory item count above/below X | inventory container |
+| 12 | `ItemEquippedCondition` | Item equipped by name | equipment container |
+| 13 | `GroundItemCondition` | Ground item nearby by name | ground item cache |
+| 14 | `PlayerInZoneCondition` | Player inside a defined tile rectangle | world location |
+| 15 | `PlayerInInstanceCondition` | Player is in a private instance | world view instance flag |
 
-| # | Class | What it checks | API |
-|---|-------|---------------|-----|
-| 1 | `PrayerPointsCondition` | Prayer pts below/above X | `VarPlayer.PRAYER_POINTS` |
-| 2 | `PrayerActiveCondition` | Specific prayer active/inactive | `Varbits.PRAYER_*` |
-| 3 | `SpecCondition` | Spec energy below/above X% | `VarPlayer.SPECIAL_ATTACK_PERCENT` |
-| 4 | `RunEnergyCondition` | Run energy below/above X% | `VarPlayer.RUN_ENERGY_OR_TUNA_PASTE_DOSES` |
-| 5 | `PoisonCondition` | Poison or venom active | poison `VarPlayer` |
-| 6 | `WildernessCondition` | Player in wilderness | wilderness `VarBit` |
-| 7 | `SlayerTaskCondition` | Task active / kills remaining | slayer `VarBits` |
-| 8 | `QuestProgressCondition` | Quest at stage X | quest `VarBits` |
+Removed from the repo condition catalog:
 
-### `StatChanged`
+- `WildernessCondition`
+- `QuestProgressCondition`
+- `BoostedSkillCondition`
 
-| # | Class | What it checks | API |
-|---|-------|---------------|-----|
-| 9 | `HpCondition` | HP points below/above X | `Skill.HITPOINTS` boosted level |
-| 10 | `SkillLevelCondition` | Real skill level above/below X | `event.getLevel()` |
-| 11 | `BoostedSkillCondition` | Boosted skill level above/below X | `event.getBoostedLevel()` |
-| 12 | `XpGainCondition` | XP gained in a specific skill | any `StatChanged` for that skill |
+Do not assume removed conditions are still part of the current implementation unless the user explicitly asks to add them back.
 
-### `ItemContainerChanged`
+## Action Types
 
-| # | Class | What it checks | Container |
-|---|-------|---------------|-----------|
-| 13 | `ItemInInventoryCondition` | Item present in inventory (by name) | `INVENTORY` |
-| 14 | `ItemCountCondition` | Item count above/below X | `INVENTORY` |
-| 15 | `ItemEquippedCondition` | Item equipped (by name) | `EQUIPMENT` |
+Current repo action set: 3 actions.
 
-### `ItemSpawned` / `ItemDespawned`
-
-| # | Class | What it checks | API |
-|---|-------|---------------|-----|
-| 16 | `GroundItemCondition` | Ground item nearby (by name) | `ItemManager.search(name)` |
-
-### `GameTick` - location only
-
-| # | Class | What it checks | API |
-|---|-------|---------------|-----|
-| 17 | `PlayerInZoneCondition` | Player inside a defined tile rectangle | `WorldPoint.isInZone(sw, ne, check)` |
-| 18 | `PlayerInInstanceCondition` | Player is in a private instance | `client.getTopLevelWorldView().isInstance()` |
-
-## Display Types
-
-| Enum | What it renders |
-|------|----------------|
-| `OVERLAY_TEXT` | Text label + optional value drawn on screen |
-| `COLORED_ICON` | Colored icon or image |
-| `PROGRESS_BAR` | Horizontal/vertical progress bar |
-| `INFOBOX` | Small counter/timer in the corner (RuneLite `InfoBox`) |
-| `SCREEN_FLASH` | Colored border flash on the game viewport |
-| `INVENTORY_HIGHLIGHT` | Colored highlight drawn on an inventory item |
-| `SOUND_ALERT` | Audio alert (uses RuneLite `SoundEffectPlayer`) |
-
-Implementation notes:
-
-- These should not share one nullable-field data class
-- Each display type should have its own typed config object and its own renderer/controller
-- Overlay rendering, infobox management, and sound playback have different lifecycles and should stay separated
+| Class | What it represents |
+|------|---------------------|
+| `OverlayTextAction` | Overlay text label with optional live value |
+| `ScreenFlashAction` | Screen flash configuration |
+| `SoundAlertAction` | Sound preset + volume |
 
 ## Panel UI
 
@@ -296,7 +292,7 @@ The sidebar panel (`StrongBuffsPanel`) is added to the client toolbar on `startU
 ----------------------------------
 > Low HP Warning      [Edit] [X]
   Spec at 100%        [Edit] [X]
-  Wilderness Alert    [Edit] [X]
+  Prayer Active       [Edit] [X]
 
 - Edit view (RuleEditPanel) -
 
@@ -306,7 +302,7 @@ Conditions:
 [ AND v ]
   HP  [ below v ] [ 30 ] pts   [X]
   [ OR v ]
-    Wilderness [ any level ]   [X]
+    Prayer active [ Thick Skin ] [x]
   [ + add condition ]
 [ + add group ]
 
@@ -314,7 +310,7 @@ Activation:
 Mode: [ While active v ]
 Cooldown ticks: [ 0 ]
 
-Display:
+Action:
 Type:  [ Screen flash v ]
 Color: [########]
 
@@ -325,57 +321,44 @@ Color: [########]
 
 The panel should edit a draft model and only persist validated data on save. Do not mutate live runtime objects directly from Swing components.
 
-## Event Handling
+## Runtime Check Work
 
-`RuleEngine` subscribes to RuneLite events. It updates `RuntimeState`, asks `TriggerIndex` which compiled rules are affected, and only re-evaluates those rules.
+Current check implementation:
 
-| Event | Triggers re-eval of |
-|-------|-------------------|
-| `VarbitChanged` | #1-8 (filtered by relevant varbits/varps) |
-| `StatChanged` | #9-12 (filtered by relevant skills) |
-| `ItemContainerChanged` | #13-15 (filtered by inventory/equipment container) |
-| `ItemSpawned` / `ItemDespawned` | #16 (ground item conditions) |
-| `GameTick` | #17-18 (location conditions only) |
+- `RuntimeState` is a cache object for approved local-player state only.
+- `ConditionChecker` evaluates either a single `ConditionDefinition` or a recursive `ConditionGroup`.
+- Condition evaluation is implemented for the current 15-condition catalog.
 
-Additional rules:
+Still missing:
 
-- `VarbitChanged` handling should be filtered by relevant varbits/varps, not "all var-based rules"
-- `StatChanged` handling should be filtered by skill where possible
-- Ground-item and XP-based conditions may require retained runtime state, not just immediate event inspection
-- `RuleEngine` maintains per-rule `ActiveRuleState`, not just a flat `Set<String>`
-
-`ActiveRuleState` tracks:
-
-- current truth value
-- entered/exited this tick
-- last activation tick
-- cooldown suppression
-- display-specific state if required
+- RuneLite event subscriptions that populate `RuntimeState`
+- A trigger index
+- A rule engine that handles transitions and cooldowns
+- Action execution/rendering driven by runtime evaluation
 
 ## Build Order
 
 Build in this sequence:
 
-1. **Core model** - `RuleDefinition`, `ActivationMode`, `ConditionNode`, `ConditionGroup`, `ConditionLogic`, typed `DisplayDefinition`
-2. **Versioned storage** - `RuleDefinitionStore` with subtype adapters and schema migrations
-3. **Runtime core** - `RuntimeState`, `RuleCompiler`, `TriggerIndex`, `ActiveRuleState`, `RuleEngine`
-4. **Vertical slice** - implement 3 conditions (`HpCondition`, `PrayerPointsCondition`, `SpecCondition`) and 3 displays (`OVERLAY_TEXT`, `SCREEN_FLASH`, `SOUND_ALERT`)
-5. **Plugin wiring** - `StrongBuffsPlugin` startUp/shutDown, overlay + panel registration
-6. **Minimal panel** - create/edit/delete rules for the vertical slice only
-7. **Testing** - serialization tests, evaluator tests, trigger-index tests, activation-transition tests
-8. **Expand safely** - add remaining approved conditions and display types incrementally
-
-Do not implement all 18 conditions before the first usable end-to-end slice. That would lock in the wrong abstractions too early.
+1. **Core model** - rule, condition tree, and action definitions
+2. **Versioned storage** - `RuleDefinitionStore` with subtype adapters and schema validation
+3. **Editor UI** - registries, panel state, recursive condition editing
+4. **Runtime checks** - `RuntimeState` plus `ConditionChecker`
+5. **Event-driven runtime** - populate `RuntimeState` from RuneLite events
+6. **Rule engine** - transitions, cooldowns, and rule activation state
+7. **Action execution** - overlays, flashes, sounds, and lifecycle management
+8. **Testing** - serialization, editor, evaluator, runtime routing, activation transitions
 
 ## New Condition Workflow (`/new-condition`)
 
 1. Confirm the condition is in the approved list in `docs/runelite-wiki/rejected-features.md`
 2. Identify the triggering event and VarBit/API from `docs/runelite-wiki/vars.md` and `events-reference.md`
 3. Add a persisted definition class in `model/condition/`
-4. Add or extend the runtime evaluator/compiler mapping
-5. Register trigger metadata in `TriggerIndex` / `RuleEngine`
-6. Add tests for serialization, evaluation, and trigger routing
-7. Add a row to the condition reference table in this file
+4. Register it in `DefinitionRegistry`
+5. Add or extend `runtime/ConditionChecker`
+6. Add tests for serialization and evaluation
+7. If runtime wiring exists for that source, update the future event-driven state population layer
+8. Add a row to the condition reference table in this file
 
 ## Key RuneLite APIs
 
@@ -440,7 +423,7 @@ From `docs/runelite-wiki/code-conventions.md`:
    - Opens RuneLite with the plugin loaded
 2. **DevTools panel** - enable via the developer mode panel; use Var Inspector to find VarBit IDs
 3. **Logging** - `log.debug(...)` for dev info, only shows with `--debug`; production uses `log.info(...)` sparingly
-4. **Build vertically** - get one end-to-end rule working before expanding condition count
+4. **Build vertically** - keep runtime, actions, and event wiring incremental and testable
 
 ## Key External References
 
@@ -463,7 +446,7 @@ From `docs/runelite-wiki/code-conventions.md`:
 - All overlays must be registered in `startUp()` and unregistered in `shutDown()` - not optional
 - The plugin panel must be added to `ClientToolbar` in `startUp()` and removed in `shutDown()`
 - Game state may **only** be accessed from the client thread; schedule work with `clientThread.invokeLater()` if needed outside event handlers
-- Prefer event-driven re-evaluation over polling; `GameTick` is used only for location conditions (#17-18)
+- Prefer event-driven re-evaluation over polling once runtime wiring is added
 - Do not put direct RuneLite API calls into persisted model classes; keep them in runtime evaluators/controllers only
 
 **Code:**

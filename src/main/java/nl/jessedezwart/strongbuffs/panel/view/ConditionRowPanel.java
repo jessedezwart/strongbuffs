@@ -12,7 +12,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import net.runelite.client.ui.ColorScheme;
 
@@ -49,7 +48,7 @@ public class ConditionRowPanel extends JPanel
 		header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		header.setAlignmentX(LEFT_ALIGNMENT);
 
-		JComboBox<Class<? extends NumericConditionDefinition>> typeComboBox = new JComboBox<>(
+		JComboBox<Class<? extends ConditionDefinition>> typeComboBox = new JComboBox<>(
 				conditionRegistry.getConditionClasses().toArray(new Class[0]));
 		typeComboBox.setRenderer((list, value, index, isSelected,
 				cellHasFocus) -> new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
@@ -60,10 +59,10 @@ public class ConditionRowPanel extends JPanel
 		typeComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, typeComboBox.getPreferredSize().height));
 		typeComboBox.addActionListener(event ->
 		{
-			Class<? extends NumericConditionDefinition> selectedClass = (Class<? extends NumericConditionDefinition>) typeComboBox
+			Class<? extends ConditionDefinition> selectedClass = (Class<? extends ConditionDefinition>) typeComboBox
 					.getSelectedItem();
-			Class<? extends NumericConditionDefinition> currentClass = condition.getClass()
-					.asSubclass(NumericConditionDefinition.class);
+			Class<? extends ConditionDefinition> currentClass = condition.getClass()
+					.asSubclass(ConditionDefinition.class);
 
 			if (Objects.equals(selectedClass, currentClass))
 			{
