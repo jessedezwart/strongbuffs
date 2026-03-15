@@ -1,5 +1,7 @@
 package nl.jessedezwart.strongbuffs.panel.editor;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -7,21 +9,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Singleton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
-import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
 import nl.jessedezwart.strongbuffs.panel.state.RuleDescriptions;
 import net.runelite.client.ui.ColorScheme;
 
 /**
- * Builds condition editor metadata and field components from numeric condition model classes.
+ * Builds condition editor metadata and field components from numeric condition model definitions.
  */
 @Singleton
 public class ConditionEditorRegistry
@@ -38,7 +37,7 @@ public class ConditionEditorRegistry
 
 		for (Class<? extends NumericConditionDefinition> conditionClass : items)
 		{
-			byClass.put(conditionClass, instantiate(conditionClass));
+			byClass.put(conditionClass, (NumericConditionDefinition) DefinitionRegistry.getConditionMetadata(conditionClass));
 		}
 
 		metadataByClass = Collections.unmodifiableMap(byClass);
@@ -56,7 +55,7 @@ public class ConditionEditorRegistry
 
 	public NumericConditionDefinition createDefaultCondition(Class<? extends NumericConditionDefinition> conditionClass)
 	{
-		return instantiate(conditionClass);
+		return DefinitionRegistry.createCondition(conditionClass);
 	}
 
 	public ConditionDefinition copy(ConditionDefinition conditionDefinition)
@@ -89,30 +88,22 @@ public class ConditionEditorRegistry
 		}
 
 		NumericConditionDefinition condition = (NumericConditionDefinition) conditionDefinition;
-		JPanel panel = new JPanel();
-		panel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JComboBox<ComparisonOperator> operatorComboBox = new JComboBox<>(ComparisonOperator.values());
-		operatorComboBox.setSelectedItem(condition.getOperator());
-		operatorComboBox.addActionListener(event ->
+		for (EditorField field : condition.getEditorFields())
 		{
-			condition.setOperator((ComparisonOperator) operatorComboBox.getSelectedItem());
-			onChange.run();
-		});
-		panel.add(operatorComboBox);
+			JComponent component = EditorFieldComponentFactory.createComponent(field, onChange);
 
-		JSpinner thresholdSpinner = new JSpinner(new SpinnerNumberModel(condition.getThreshold(),
-			condition.getMinimumValue(), condition.getMaximumValue(), 1));
-		thresholdSpinner.addChangeListener(event ->
-		{
-			condition.setThreshold((Integer) thresholdSpinner.getValue());
-			onChange.run();
-		});
-		panel.add(thresholdSpinner);
+			if (component instanceof javax.swing.JComboBox)
+			{
+				component.setPreferredSize(new Dimension(78, component.getPreferredSize().height));
+				component.setMaximumSize(component.getPreferredSize());
+			}
 
-		JLabel unitLabel = new JLabel(condition.getEditorUnit().trim());
-		unitLabel.setForeground(ColorScheme.TEXT_COLOR);
-		panel.add(unitLabel);
+			panel.add(component);
+		}
+
 		return panel;
 	}
 
@@ -128,7 +119,8 @@ public class ConditionEditorRegistry
 			}
 		}
 
-		items.sort(Comparator.comparing(conditionClass -> instantiate(conditionClass).getEditorLabel()));
+		items.sort(Comparator.comparing(conditionClass ->
+			((NumericConditionDefinition) DefinitionRegistry.getConditionMetadata(conditionClass)).getEditorLabel()));
 
 		if (items.isEmpty())
 		{
@@ -136,17 +128,5 @@ public class ConditionEditorRegistry
 		}
 
 		return items;
-	}
-
-	private static <T extends NumericConditionDefinition> T instantiate(Class<T> conditionClass)
-	{
-		try
-		{
-			return conditionClass.getDeclaredConstructor().newInstance();
-		}
-		catch (ReflectiveOperationException ex)
-		{
-			throw new IllegalStateException("Failed to create condition instance for " + conditionClass.getName(), ex);
-		}
 	}
 }

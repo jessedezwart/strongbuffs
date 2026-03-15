@@ -3,6 +3,7 @@ package nl.jessedezwart.strongbuffs.panel.view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -231,8 +232,9 @@ public class RuleEditPanel extends JPanel
 	private JComponent createFooter()
 	{
 		JPanel footer = new JPanel();
-		footer.setLayout(new BoxLayout(footer, BoxLayout.X_AXIS));
+		footer.setLayout(new GridLayout(1, 2, 6, 0));
 		footer.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		footer.setAlignmentX(LEFT_ALIGNMENT);
 
 		saveButton = new javax.swing.JButton("Save");
 		saveButton.addActionListener(event ->
@@ -241,7 +243,6 @@ public class RuleEditPanel extends JPanel
 			onStructureChange.run();
 		});
 		footer.add(saveButton);
-		footer.add(Box.createHorizontalStrut(6));
 
 		cancelButton = new javax.swing.JButton("Cancel");
 		cancelButton.addActionListener(event ->
@@ -272,11 +273,13 @@ public class RuleEditPanel extends JPanel
 	{
 		JPanel row = new JPanel(new BorderLayout(8, 0));
 		row.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		row.setAlignmentX(LEFT_ALIGNMENT);
 
 		JLabel title = new JLabel(label);
 		title.setForeground(ColorScheme.TEXT_COLOR);
 		title.setPreferredSize(new Dimension(70, title.getPreferredSize().height));
 		row.add(title, BorderLayout.WEST);
+		component.setMaximumSize(new Dimension(Integer.MAX_VALUE, component.getPreferredSize().height));
 		row.add(component, BorderLayout.CENTER);
 		return row;
 	}

@@ -3,7 +3,6 @@ package nl.jessedezwart.strongbuffs.model.registry;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -18,21 +17,23 @@ public class DefinitionRegistryConsistencyTest
 		"src/main/java/nl/jessedezwart/strongbuffs/model/action/impl");
 	private static final Path CONDITION_IMPL_DIR = PROJECT_ROOT.resolve(
 		"src/main/java/nl/jessedezwart/strongbuffs/model/condition/impl");
-	private static final Path ACTION_SERVICES_FILE = PROJECT_ROOT.resolve(
-		"src/main/resources/META-INF/services/nl.jessedezwart.strongbuffs.model.action.ActionDefinition");
-	private static final Path CONDITION_SERVICES_FILE = PROJECT_ROOT.resolve(
-		"src/main/resources/META-INF/services/nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition");
 
 	@Test
-	public void actionImplsMatchMetaInfServices() throws IOException
+	public void actionImplsMatchDefinitionRegistry() throws IOException
 	{
-		assertEquals(readJavaClassNames(ACTION_IMPL_DIR), readServiceEntries(ACTION_SERVICES_FILE));
+		assertEquals(readJavaClassNames(ACTION_IMPL_DIR), DefinitionRegistry.getActionDefinitions().stream()
+			.map(Class::getName)
+			.sorted()
+			.collect(Collectors.toList()));
 	}
 
 	@Test
-	public void conditionImplsMatchMetaInfServices() throws IOException
+	public void conditionImplsMatchDefinitionRegistry() throws IOException
 	{
-		assertEquals(readJavaClassNames(CONDITION_IMPL_DIR), readServiceEntries(CONDITION_SERVICES_FILE));
+		assertEquals(readJavaClassNames(CONDITION_IMPL_DIR), DefinitionRegistry.getConditionDefinitions().stream()
+			.map(Class::getName)
+			.sorted()
+			.collect(Collectors.toList()));
 	}
 
 	private static List<String> readJavaClassNames(Path directory) throws IOException
@@ -45,15 +46,6 @@ public class DefinitionRegistryConsistencyTest
 				.sorted()
 				.collect(Collectors.toList());
 		}
-	}
-
-	private static List<String> readServiceEntries(Path servicesFile) throws IOException
-	{
-		return Files.readAllLines(servicesFile, StandardCharsets.UTF_8).stream()
-			.map(String::trim)
-			.filter(line -> !line.isEmpty())
-			.sorted()
-			.collect(Collectors.toList());
 	}
 
 	private static String toClassName(Path path)

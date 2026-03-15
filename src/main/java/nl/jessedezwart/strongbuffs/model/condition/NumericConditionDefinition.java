@@ -1,7 +1,10 @@
 package nl.jessedezwart.strongbuffs.model.condition;
 
+import java.util.Arrays;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -32,5 +35,15 @@ public abstract class NumericConditionDefinition extends ConditionDefinition
 		copy.setOperator(operator);
 		copy.setThreshold(threshold);
 		return copy;
+	}
+
+	@Override
+	public List<EditorField> getEditorFields()
+	{
+		return Arrays.asList(
+			EditorField.choice("operator", "", this::getOperator, this::setOperator, Arrays.asList(ComparisonOperator.values()),
+				ComparisonOperator::getEditorLabel),
+			EditorField.spinner("threshold", "", this::getThreshold, this::setThreshold, getMinimumValue(),
+				getMaximumValue(), 1, getEditorUnit().trim()));
 	}
 }

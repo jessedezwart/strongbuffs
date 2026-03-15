@@ -1,10 +1,13 @@
 package nl.jessedezwart.strongbuffs.model.action.impl;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
+import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @NoArgsConstructor
@@ -41,6 +44,15 @@ public class OverlayTextAction extends ActionDefinition
 		copy.setColorHex(colorHex);
 		copy.setShowValue(showValue);
 		return copy;
+	}
+
+	@Override
+	public List<EditorField> getEditorFields()
+	{
+		return Arrays.asList(
+			EditorField.text("text", "Text", 14, this::getText, this::setText),
+			EditorField.color("colorHex", "Color", 8, this::getColorHex, this::setColorHex),
+			EditorField.checkbox("showValue", "Show live value", this::isShowValue, this::setShowValue));
 	}
 
 	@Override

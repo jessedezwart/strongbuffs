@@ -72,17 +72,6 @@ public final class RuleDescriptions
 
 	public static String describeComparisonOperator(ComparisonOperator operator)
 	{
-		switch (operator)
-		{
-			case GREATER_THAN:
-				return ">";
-			case GREATER_THAN_OR_EQUAL:
-				return ">=";
-			case LESS_THAN:
-				return "<";
-			case LESS_THAN_OR_EQUAL:
-			default:
-				return "<=";
-		}
+		return operator == null ? ComparisonOperator.LESS_THAN_OR_EQUAL.getEditorLabel() : operator.getEditorLabel();
 	}
 }

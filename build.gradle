@@ -59,6 +59,13 @@ tasks.register('run', JavaExec) {
 	args "--developer-mode", "--debug"
 }
 
+tasks.register('previewUi', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'nl.jessedezwart.strongbuffs.StrongBuffsPanelPreview'
+
+	jvmArgs "-ea"
+}
+
 tasks.register('shadowJar', Jar) {
 	dependsOn configurations.testRuntimeClasspath
 	manifest {

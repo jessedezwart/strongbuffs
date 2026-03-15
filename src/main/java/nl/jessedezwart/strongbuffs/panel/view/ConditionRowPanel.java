@@ -1,11 +1,12 @@
 package nl.jessedezwart.strongbuffs.panel.view;
 
-import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
@@ -23,8 +24,8 @@ public class ConditionRowPanel extends JPanel
 	private final Consumer<ConditionDefinition> onReplace;
 
 	public ConditionRowPanel(ConditionDefinition condition, ConditionEditorRegistry conditionRegistry,
-		Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove,
-		Consumer<ConditionDefinition> onReplace)
+			Runnable onLiveChange, Runnable onStructureChange, Runnable onRemove,
+			Consumer<ConditionDefinition> onReplace)
 	{
 		this.condition = condition;
 		this.conditionRegistry = conditionRegistry;
@@ -37,27 +38,29 @@ public class ConditionRowPanel extends JPanel
 
 	private void build()
 	{
-		setLayout(new BorderLayout(8, 0));
+		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		setAlignmentX(LEFT_ALIGNMENT);
 
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 		left.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JComboBox<Class<? extends NumericConditionDefinition>> typeComboBox =
-			new JComboBox<>(conditionRegistry.getConditionClasses().toArray(new Class[0]));
-		typeComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) ->
-			new javax.swing.DefaultListCellRenderer()
-				.getListCellRendererComponent(list,
-					value == null ? "" : conditionRegistry.getByConditionClass(value).getEditorLabel(),
-					index, isSelected, cellHasFocus));
+		JComboBox<Class<? extends NumericConditionDefinition>> typeComboBox = new JComboBox<>(
+				conditionRegistry.getConditionClasses().toArray(new Class[0]));
+		typeComboBox.setRenderer((list, value, index, isSelected,
+				cellHasFocus) -> new javax.swing.DefaultListCellRenderer().getListCellRendererComponent(list,
+						value == null ? "" : conditionRegistry.getByConditionClass(value).getEditorLabel(), index,
+						isSelected, cellHasFocus));
 		typeComboBox.setSelectedItem(condition.getClass());
+		typeComboBox.setPreferredSize(new Dimension(120, typeComboBox.getPreferredSize().height));
+		typeComboBox.setMaximumSize(typeComboBox.getPreferredSize());
 		typeComboBox.addActionListener(event ->
 		{
-			Class<? extends NumericConditionDefinition> selectedClass =
-				(Class<? extends NumericConditionDefinition>) typeComboBox.getSelectedItem();
-			Class<? extends NumericConditionDefinition> currentClass =
-				condition.getClass().asSubclass(NumericConditionDefinition.class);
+			Class<? extends NumericConditionDefinition> selectedClass = (Class<? extends NumericConditionDefinition>) typeComboBox
+					.getSelectedItem();
+			Class<? extends NumericConditionDefinition> currentClass = condition.getClass()
+					.asSubclass(NumericConditionDefinition.class);
 
 			if (Objects.equals(selectedClass, currentClass))
 			{
@@ -68,18 +71,23 @@ public class ConditionRowPanel extends JPanel
 			onStructureChange.run();
 		});
 		left.add(typeComboBox);
-		add(left, BorderLayout.WEST);
+		add(left);
+		add(Box.createHorizontalStrut(6));
 
-		add(createEditorPanel(), BorderLayout.CENTER);
+		JPanel editorPanel = createEditorPanel();
+		editorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, editorPanel.getPreferredSize().height));
+		add(editorPanel);
+		add(Box.createHorizontalStrut(6));
 
-		JButton removeButton = new JButton("Remove");
+		javax.swing.JButton removeButton = new javax.swing.JButton("Remove");
 		removeButton.addActionListener(event -> onRemove.run());
-		add(removeButton, BorderLayout.EAST);
+		removeButton.setMaximumSize(removeButton.getPreferredSize());
+		add(removeButton);
 	}
 
 	private JPanel createEditorPanel()
 	{
-		JPanel center = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		JPanel center = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
 		center.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		center.add(conditionRegistry.createEditor(condition, onLiveChange));
 		return center;

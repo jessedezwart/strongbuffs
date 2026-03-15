@@ -1,12 +1,15 @@
 package nl.jessedezwart.strongbuffs.model.action.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
+import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @NoArgsConstructor
@@ -43,6 +46,16 @@ public class SoundAlertAction extends ActionDefinition
 		copy.setSoundKey(soundKey);
 		copy.setVolumePercent(volumePercent);
 		return copy;
+	}
+
+	@Override
+	public List<EditorField> getEditorFields()
+	{
+		return java.util.Arrays.asList(
+			EditorField.choice("soundKey", "Preset", this::getSoundKey, this::setSoundKey,
+				new ArrayList<>(SOUND_LABELS_BY_KEY.keySet()), SoundAlertAction::getSoundLabel),
+			EditorField.slider("volumePercent", "Volume", this::getVolumePercent, this::setVolumePercent, 0, 100, 25,
+				true, true));
 	}
 
 	@Override

@@ -3,11 +3,10 @@ package nl.jessedezwart.strongbuffs.panel.view;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -31,24 +30,21 @@ public class RuleListPanel extends JPanel
 	private boolean suppressSelectionEvents;
 
 	public RuleListPanel(Consumer<String> onSelectRule, Runnable onCreateRule, Runnable onDuplicateRule,
-		Runnable onDeleteRule, ActionEditorRegistry actionRegistry)
+			Runnable onDeleteRule, ActionEditorRegistry actionRegistry)
 	{
 		setLayout(new BorderLayout(0, 6));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setBorder(BorderFactory.createTitledBorder("Rules"));
 
-		JPanel actions = new JPanel();
-		actions.setLayout(new BoxLayout(actions, BoxLayout.X_AXIS));
+		JPanel actions = new JPanel(new GridLayout(1, 3, 6, 0));
 		actions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		JButton newButton = new JButton("New Rule");
 		newButton.addActionListener(event -> onCreateRule.run());
 		actions.add(newButton);
-		actions.add(Box.createHorizontalStrut(6));
 
 		duplicateButton.addActionListener(event -> onDuplicateRule.run());
 		actions.add(duplicateButton);
-		actions.add(Box.createHorizontalStrut(6));
 
 		deleteButton.addActionListener(event -> onDeleteRule.run());
 		actions.add(deleteButton);
@@ -118,15 +114,16 @@ public class RuleListPanel extends JPanel
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends RuleDefinition> list, RuleDefinition value,
-			int index, boolean isSelected, boolean cellHasFocus)
+				int index, boolean isSelected, boolean cellHasFocus)
 		{
 			JPanel panel = new JPanel(new BorderLayout(0, 2));
 			panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 			panel.setBackground(isSelected ? ColorScheme.DARK_GRAY_HOVER_COLOR : ColorScheme.DARKER_GRAY_COLOR);
 
 			javax.swing.JLabel title = (javax.swing.JLabel) defaultRenderer.getListCellRendererComponent(list,
-				value == null || value.getName() == null || value.getName().trim().isEmpty() ? "Unnamed rule" : value.getName(),
-				index, isSelected, cellHasFocus);
+					value == null || value.getName() == null || value.getName().trim().isEmpty() ? "Unnamed rule"
+							: value.getName(),
+					index, isSelected, cellHasFocus);
 			title.setFont(FontManager.getDefaultBoldFont());
 			title.setForeground(ColorScheme.TEXT_COLOR);
 			title.setOpaque(false);

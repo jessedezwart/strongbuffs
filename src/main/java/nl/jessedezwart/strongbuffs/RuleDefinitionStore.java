@@ -13,10 +13,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +32,6 @@ public class RuleDefinitionStore
 	static final String CONFIG_GROUP = "strongbuffs";
 	static final String CONFIG_KEY_RULES = "rules";
 	static final int CURRENT_SCHEMA_VERSION = 1;
-	private static final Map<String, Class<? extends ConditionNode>> CONDITION_NODE_TYPES = createConditionNodeTypes();
-	private static final Map<String, Class<? extends ActionDefinition>> ACTION_DEFINITION_TYPES = createActionDefinitionTypes();
 
 	private final ConfigManager configManager;
 	private final Gson gson;
@@ -179,7 +174,7 @@ public class RuleDefinitionStore
 	private static Gson createGson()
 	{
 		return new GsonBuilder().registerTypeAdapter(ConditionNode.class, new ConditionNodeAdapter())
-			.registerTypeAdapter(ActionDefinition.class, new ActionDefinitionAdapter()).create();
+				.registerTypeAdapter(ActionDefinition.class, new ActionDefinitionAdapter()).create();
 	}
 
 	public static List<Class<? extends ConditionDefinition>> getSupportedConditionDefinitionClasses()
@@ -190,34 +185,6 @@ public class RuleDefinitionStore
 	public static List<Class<? extends ActionDefinition>> getSupportedActionDefinitionClasses()
 	{
 		return DefinitionRegistry.getActionDefinitions();
-	}
-
-	private static Map<String, Class<? extends ConditionNode>> createConditionNodeTypes()
-	{
-		Map<String, Class<? extends ConditionNode>> typeToClass = new LinkedHashMap<>();
-		ConditionGroup group = new ConditionGroup();
-		typeToClass.put(group.getTypeId(), ConditionGroup.class);
-
-		for (Class<? extends ConditionDefinition> conditionClass : DefinitionRegistry.getConditionDefinitions())
-		{
-			ConditionDefinition condition = instantiate(conditionClass);
-			typeToClass.put(condition.getTypeId(), conditionClass);
-		}
-
-		return Collections.unmodifiableMap(typeToClass);
-	}
-
-	private static Map<String, Class<? extends ActionDefinition>> createActionDefinitionTypes()
-	{
-		Map<String, Class<? extends ActionDefinition>> typeToClass = new LinkedHashMap<>();
-
-		for (Class<? extends ActionDefinition> actionClass : DefinitionRegistry.getActionDefinitions())
-		{
-			ActionDefinition action = instantiate(actionClass);
-			typeToClass.put(action.getTypeId(), actionClass);
-		}
-
-		return Collections.unmodifiableMap(typeToClass);
 	}
 
 	private static final class ConditionNodeAdapter
@@ -245,7 +212,7 @@ public class RuleDefinitionStore
 		{
 			JsonObject jsonObject = json.getAsJsonObject();
 			String type = requireType(jsonObject, TYPE_FIELD);
-			Class<? extends ConditionNode> targetClass = CONDITION_NODE_TYPES.get(type);
+			Class<? extends ConditionNode> targetClass = resolveConditionNodeClass(type);
 
 			if (targetClass == null)
 			{
@@ -259,7 +226,7 @@ public class RuleDefinitionStore
 	}
 
 	private static final class ActionDefinitionAdapter
-		implements JsonSerializer<ActionDefinition>, JsonDeserializer<ActionDefinition>
+			implements JsonSerializer<ActionDefinition>, JsonDeserializer<ActionDefinition>
 	{
 		private static final String TYPE_FIELD = "type";
 
@@ -283,7 +250,7 @@ public class RuleDefinitionStore
 		{
 			JsonObject jsonObject = json.getAsJsonObject();
 			String type = requireType(jsonObject, TYPE_FIELD);
-			Class<? extends ActionDefinition> targetClass = ACTION_DEFINITION_TYPES.get(type);
+			Class<? extends ActionDefinition> targetClass = resolveActionDefinitionClass(type);
 
 			if (targetClass == null)
 			{
@@ -313,15 +280,44 @@ public class RuleDefinitionStore
 		return jsonObject.has("rootGroup") && jsonObject.has("action");
 	}
 
-	private static <T> T instantiate(Class<T> type)
+	private static Class<? extends ConditionNode> resolveConditionNodeClass(String type)
 	{
+		if (type == null || type.isEmpty())
+		{
+			return null;
+		}
+
+		ConditionGroup group = new ConditionGroup();
+
+		if (group.getTypeId().equals(type))
+		{
+			return ConditionGroup.class;
+		}
+
 		try
 		{
-			return type.getDeclaredConstructor().newInstance();
+			return DefinitionRegistry.getConditionDefinitionClass(type);
 		}
-		catch (ReflectiveOperationException ex)
+		catch (IllegalArgumentException ex)
 		{
-			throw new IllegalStateException("Failed to instantiate " + type.getName(), ex);
+			return null;
+		}
+	}
+
+	private static Class<? extends ActionDefinition> resolveActionDefinitionClass(String type)
+	{
+		if (type == null || type.isEmpty())
+		{
+			return null;
+		}
+
+		try
+		{
+			return DefinitionRegistry.getActionDefinitionClass(type);
+		}
+		catch (IllegalArgumentException ex)
+		{
+			return null;
 		}
 	}
 }

@@ -1,10 +1,13 @@
 package nl.jessedezwart.strongbuffs.model.action.impl;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
+import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @NoArgsConstructor
@@ -39,6 +42,15 @@ public class ScreenFlashAction extends ActionDefinition
 		copy.setColorHex(colorHex);
 		copy.setDurationTicks(durationTicks);
 		return copy;
+	}
+
+	@Override
+	public List<EditorField> getEditorFields()
+	{
+		return Arrays.asList(
+			EditorField.color("colorHex", "Color", 8, this::getColorHex, this::setColorHex),
+			EditorField.slider("durationTicks", "Duration", this::getDurationTicks, this::setDurationTicks, 1, 10, 1,
+				true, true));
 	}
 
 	@Override
