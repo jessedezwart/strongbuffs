@@ -17,15 +17,15 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerActiveCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeRegistry;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirementCollector;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapterRegistry;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuleConditionRequirementCollector;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import org.junit.Test;
 
 public class RuntimeConditionRequirementsTest
 {
-	private final RuntimeConditionRequirementCollector requirementCollector =
-		new RuntimeConditionRequirementCollector(new ConditionRuntimeRegistry());
+	private final RuleConditionRequirementCollector requirementCollector = new RuleConditionRequirementCollector(
+			new ConditionRuntimeAdapterRegistry());
 
 	@Test
 	public void collectsRequirementsFromConditionImplementations()
@@ -51,8 +51,8 @@ public class RuntimeConditionRequirementsTest
 		PlayerInInstanceCondition instanceCondition = new PlayerInInstanceCondition();
 
 		ConditionGroup rootGroup = new ConditionGroup();
-		rootGroup.getChildren().addAll(Arrays.asList(hpCondition, prayerCondition, skillLevelCondition,
-			xpGainCondition, itemCountCondition, groundItemCondition, zoneCondition, instanceCondition));
+		rootGroup.getChildren().addAll(Arrays.asList(hpCondition, prayerCondition, skillLevelCondition, xpGainCondition,
+				itemCountCondition, groundItemCondition, zoneCondition, instanceCondition));
 
 		RuleDefinition enabledRule = new RuleDefinition();
 		enabledRule.setRootGroup(rootGroup);
@@ -61,7 +61,7 @@ public class RuntimeConditionRequirementsTest
 		disabledRule.setEnabled(false);
 		disabledRule.getRootGroup().getChildren().add(new HpCondition());
 
-		RuntimeConditionRequirements requirements = requirementCollector.fromRules(Arrays.asList(enabledRule, disabledRule));
+		RuntimeStateWatchlist requirements = requirementCollector.fromRules(Arrays.asList(enabledRule, disabledRule));
 
 		assertTrue(requirements.tracksHitpoints());
 		assertFalse(requirements.tracksPrayerPoints());

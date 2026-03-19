@@ -12,7 +12,7 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.action.ActionDispatcher;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionChecker;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionTreeEvaluator;
 import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleCompiler;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleEngine;
@@ -28,7 +28,7 @@ public class RuleEngineTest
 	public void baselineActivatesWhileActiveRuleWithoutTransientFire()
 	{
 		RecordingActionDispatcher actionDispatcher = new RecordingActionDispatcher();
-		RuleEngine ruleEngine = new RuleEngine(new ConditionChecker(), actionDispatcher);
+		RuleEngine ruleEngine = new RuleEngine(new ConditionTreeEvaluator(), actionDispatcher);
 
 		ruleEngine.setCompiledRuleSet(ruleCompiler.compile(List.of(createRule("a", ActivationMode.WHILE_ACTIVE, 0))));
 
@@ -42,11 +42,10 @@ public class RuleEngineTest
 	public void enterAndExitRulesRespectTransitionsAndCooldown()
 	{
 		RecordingActionDispatcher actionDispatcher = new RecordingActionDispatcher();
-		RuleEngine ruleEngine = new RuleEngine(new ConditionChecker(), actionDispatcher);
+		RuleEngine ruleEngine = new RuleEngine(new ConditionTreeEvaluator(), actionDispatcher);
 
-		ruleEngine.setCompiledRuleSet(ruleCompiler.compile(List.of(
-			createRule("enter", ActivationMode.ON_ENTER, 2),
-			createRule("exit", ActivationMode.ON_EXIT, 0))));
+		ruleEngine.setCompiledRuleSet(ruleCompiler.compile(List.of(createRule("enter", ActivationMode.ON_ENTER, 2),
+				createRule("exit", ActivationMode.ON_EXIT, 0))));
 
 		RuntimeState runtimeState = createState(40, 1);
 		ruleEngine.onRuntimeStateChanged(EnumSet.of(RuntimeTrigger.FULL_REFRESH), runtimeState);
@@ -85,7 +84,8 @@ public class RuleEngineTest
 		return ruleDefinition;
 	}
 
-	private static ConditionGroup withCondition(nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition condition)
+	private static ConditionGroup withCondition(
+			nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition condition)
 	{
 		ConditionGroup group = new ConditionGroup();
 		group.getChildren().add(condition);

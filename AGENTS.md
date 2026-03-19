@@ -97,15 +97,18 @@ Current runtime evaluation is split into clearly separated steps:
    - stores cached data in `RuntimeState`
 5. `ConditionChecker`
    - evaluates persisted condition trees against cached `RuntimeState`
-6. `RuleCompiler`
+6. `RuntimeRequirementPlanner`
+   - maps a `RuntimeConditionRequirements` watchlist to the RuneLite subscriptions and runtime triggers it implies
+   - is the single source of truth for tracker listener wiring and engine invalidation policy
+7. `RuleCompiler`
    - turns validated rules into `CompiledRule` objects
-   - precomputes each rule's requirements and trigger plan
+   - precomputes each rule's requirements and trigger plan through `RuntimeRequirementPlanner`
    - builds a `RuleTriggerIndex` so the engine only reevaluates affected rules
-7. `RuleEngine`
+8. `RuleEngine`
    - handles `WHILE_ACTIVE`, `ON_ENTER`, and `ON_EXIT`
    - enforces cooldowns
    - activates, updates, and clears actions through `ActionDispatcher`
-8. `ActionDispatcher` and `RuntimeActionHandlerRegistry`
+9. `ActionDispatcher` and `RuntimeActionHandlerRegistry`
    - route each action type to its runtime handler
    - own overlay/screen-flash/sound lifecycle
 
@@ -210,6 +213,7 @@ Current runtime implementation:
 - `RuntimeConditionTracker` owns event subscriptions and delegates state mutation to focused updater classes
 - `ConditionRuntimeRegistry` is the runtime mapping layer for condition evaluation, requirement planning, and live-value formatting
 - `ConditionChecker` recursively evaluates `ConditionGroup` trees against cached `RuntimeState`
+- `RuntimeRequirementPlanner` is the shared mapping from requirement watchlists to RuneLite subscriptions and runtime triggers
 - `RuleCompiler` and `RuleTriggerIndex` reduce reevaluation work to rules affected by the incoming runtime triggers
 - `RuleEngine` applies activation mode and cooldown semantics, then calls `ActionDispatcher`
 
@@ -246,7 +250,7 @@ Current RuneLite wiring:
    - extend the relevant `RuntimeState` slice or add a new slice
    - update the relevant updater class, or add a new updater if the concern does not fit an existing one
    - make sure `RuntimeConditionTracker` refreshes and emits the correct runtime triggers
-   - update `RuntimeTriggerPlanner` if the new requirement needs a new trigger
+   - update `RuntimeRequirementPlanner` if the new requirement needs new runtime triggers or listener subscriptions
 9. Add tests for:
    - serialization/deserialization through `RuleDefinitionStore`
    - requirement collection

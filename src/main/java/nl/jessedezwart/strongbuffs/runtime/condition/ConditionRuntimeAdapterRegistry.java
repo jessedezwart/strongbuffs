@@ -33,11 +33,11 @@ import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
  * </p>
  */
 @Singleton
-public class ConditionRuntimeRegistry
+public class ConditionRuntimeAdapterRegistry
 {
-	private final Map<Class<? extends ConditionDefinition>, ConditionRuntimeHandler<? extends ConditionDefinition>> handlers = new LinkedHashMap<>();
+	private final Map<Class<? extends ConditionDefinition>, ConditionRuntimeAdapter<? extends ConditionDefinition>> handlers = new LinkedHashMap<>();
 
-	public ConditionRuntimeRegistry()
+	public ConditionRuntimeAdapterRegistry()
 	{
 		register(new HpConditionRuntimeHandler());
 		register(new PrayerPointsConditionRuntimeHandler());
@@ -72,8 +72,7 @@ public class ConditionRuntimeRegistry
 	/**
 	 * Adds the runtime state requirements needed to evaluate one condition type.
 	 */
-	public void contributeRequirements(ConditionDefinition conditionDefinition,
-			RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(ConditionDefinition conditionDefinition, RuntimeStateWatchlist.Builder builder)
 	{
 		if (conditionDefinition == null)
 		{
@@ -98,20 +97,20 @@ public class ConditionRuntimeRegistry
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends ConditionDefinition> ConditionRuntimeHandler<T> getHandler(
+	private <T extends ConditionDefinition> ConditionRuntimeAdapter<T> getHandler(
 			ConditionDefinition conditionDefinition)
 	{
-		ConditionRuntimeHandler<?> handler = handlers.get(conditionDefinition.getClass());
+		ConditionRuntimeAdapter<?> handler = handlers.get(conditionDefinition.getClass());
 
 		if (handler == null)
 		{
 			throw new IllegalArgumentException("Unsupported condition definition: " + conditionDefinition.getClass());
 		}
 
-		return (ConditionRuntimeHandler<T>) handler;
+		return (ConditionRuntimeAdapter<T>) handler;
 	}
 
-	private <T extends ConditionDefinition> void register(ConditionRuntimeHandler<T> handler)
+	private <T extends ConditionDefinition> void register(ConditionRuntimeAdapter<T> handler)
 	{
 		// Keeping match logic, requirement planning, and formatting together prevents
 		// new condition

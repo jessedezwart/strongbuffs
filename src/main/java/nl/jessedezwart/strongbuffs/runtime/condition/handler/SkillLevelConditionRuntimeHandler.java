@@ -2,12 +2,13 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.FormatterUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeHandler<SkillLevelCondition>
+public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeAdapter<SkillLevelCondition>
 {
 	@Override
 	public Class<SkillLevelCondition> getConditionType()
@@ -25,12 +26,11 @@ public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeHandle
 			return false;
 		}
 
-		return ConditionRuntimeHandlerSupport.matchesNumeric(condition,
-				runtimeState.getSkills().getRealSkillLevel(skill));
+		return ConditionMatcherUtils.matches(condition, runtimeState.getSkills().getRealSkillLevel(skill));
 	}
 
 	@Override
-	public void contributeRequirements(SkillLevelCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(SkillLevelCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireRealSkill(condition.getSkill());
 	}
@@ -45,7 +45,6 @@ public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeHandle
 			return null;
 		}
 
-		return ConditionRuntimeHandlerSupport.formatSkill(skill) + " "
-				+ runtimeState.getSkills().getRealSkillLevel(skill);
+		return FormatterUtils.format(skill) + " " + runtimeState.getSkills().getRealSkillLevel(skill);
 	}
 }

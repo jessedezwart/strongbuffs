@@ -7,14 +7,16 @@ import lombok.Getter;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 /**
  * Immutable runtime representation of one persisted rule.
  *
- * <p>Compiled rules normalize defaults and carry the precomputed requirement and trigger metadata
- * the engine needs for fast incremental evaluation.</p>
+ * <p>
+ * Compiled rules normalize defaults and carry the precomputed requirement and
+ * trigger metadata the engine needs for fast incremental evaluation.
+ * </p>
  */
 @Getter
 public class CompiledRule
@@ -25,11 +27,12 @@ public class CompiledRule
 	private final ActivationMode activationMode;
 	private final int cooldownTicks;
 	private final ActionDefinition action;
-	private final RuntimeConditionRequirements requirements;
+	private final RuntimeStateWatchlist requirements;
 	private final Set<RuntimeTrigger> triggers;
 
-	public CompiledRule(String id, String name, ConditionGroup rootGroup, ActivationMode activationMode, int cooldownTicks,
-		ActionDefinition action, RuntimeConditionRequirements requirements, Set<RuntimeTrigger> triggers)
+	public CompiledRule(String id, String name, ConditionGroup rootGroup, ActivationMode activationMode,
+			int cooldownTicks, ActionDefinition action, RuntimeStateWatchlist requirements,
+			Set<RuntimeTrigger> triggers)
 	{
 		this.id = id;
 		this.name = name;
@@ -37,9 +40,9 @@ public class CompiledRule
 		this.activationMode = activationMode == null ? ActivationMode.WHILE_ACTIVE : activationMode;
 		this.cooldownTicks = Math.max(0, cooldownTicks);
 		this.action = action;
-		this.requirements = requirements == null ? RuntimeConditionRequirements.empty() : requirements;
+		this.requirements = requirements == null ? RuntimeStateWatchlist.empty() : requirements;
 		this.triggers = triggers == null || triggers.isEmpty()
-			? Collections.unmodifiableSet(EnumSet.noneOf(RuntimeTrigger.class))
-			: Collections.unmodifiableSet(EnumSet.copyOf(triggers));
+				? Collections.unmodifiableSet(EnumSet.noneOf(RuntimeTrigger.class))
+				: Collections.unmodifiableSet(EnumSet.copyOf(triggers));
 	}
 }

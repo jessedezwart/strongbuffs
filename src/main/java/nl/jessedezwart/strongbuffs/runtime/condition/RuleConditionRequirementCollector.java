@@ -9,18 +9,16 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 
 /**
- * Walks persisted rule trees and aggregates the runtime state slices they require.
- *
- * <p>This allows the tracker to subscribe and refresh selectively instead of maintaining every
- * possible slice of game state all the time.</p>
+ * Walks persisted rule trees and aggregates the runtime state slices they
+ * require.
  */
 @Singleton
-public class RuntimeConditionRequirementCollector
+public class RuleConditionRequirementCollector
 {
-	private final ConditionRuntimeRegistry conditionRuntimeRegistry;
+	private final ConditionRuntimeAdapterRegistry conditionRuntimeRegistry;
 
 	@Inject
-	public RuntimeConditionRequirementCollector(ConditionRuntimeRegistry conditionRuntimeRegistry)
+	public RuleConditionRequirementCollector(ConditionRuntimeAdapterRegistry conditionRuntimeRegistry)
 	{
 		this.conditionRuntimeRegistry = conditionRuntimeRegistry;
 	}
@@ -28,9 +26,9 @@ public class RuntimeConditionRequirementCollector
 	/**
 	 * Collects the union of requirements for all enabled rules.
 	 */
-	public RuntimeConditionRequirements fromRules(List<RuleDefinition> rules)
+	public RuntimeStateWatchlist fromRules(List<RuleDefinition> rules)
 	{
-		RuntimeConditionRequirements.Builder builder = RuntimeConditionRequirements.builder();
+		RuntimeStateWatchlist.Builder builder = RuntimeStateWatchlist.builder();
 
 		if (rules == null || rules.isEmpty())
 		{
@@ -53,7 +51,7 @@ public class RuntimeConditionRequirementCollector
 	/**
 	 * Recursively contributes requirements from one condition tree branch.
 	 */
-	public void collect(ConditionGroup group, RuntimeConditionRequirements.Builder builder)
+	public void collect(ConditionGroup group, RuntimeStateWatchlist.Builder builder)
 	{
 		if (group == null)
 		{

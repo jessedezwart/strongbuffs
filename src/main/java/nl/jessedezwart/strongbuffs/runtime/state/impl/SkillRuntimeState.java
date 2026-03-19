@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime.state;
+package nl.jessedezwart.strongbuffs.runtime.state.impl;
 
 import java.util.Collections;
 import java.util.EnumMap;

@@ -10,7 +10,7 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.gameval.InventoryID;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
@@ -25,7 +25,7 @@ public class InventoryStateUpdater
 		this.itemNameResolver = itemNameResolver;
 	}
 
-	public void refresh(RuntimeState runtimeState, RuntimeConditionRequirements requirements, Client client)
+	public void refresh(RuntimeState runtimeState, RuntimeStateWatchlist requirements, Client client)
 	{
 		if (requirements.hasInventoryTracking())
 		{
@@ -38,8 +38,8 @@ public class InventoryStateUpdater
 		}
 	}
 
-	public EnumSet<RuntimeTrigger> onItemContainerChanged(RuntimeState runtimeState,
-		RuntimeConditionRequirements requirements, ItemContainerChanged event)
+	public EnumSet<RuntimeTrigger> onItemContainerChanged(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			ItemContainerChanged event)
 	{
 		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);
 
@@ -58,8 +58,8 @@ public class InventoryStateUpdater
 		return triggers;
 	}
 
-	private void refreshInventory(RuntimeState runtimeState, RuntimeConditionRequirements requirements,
-		ItemContainer itemContainer)
+	private void refreshInventory(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			ItemContainer itemContainer)
 	{
 		runtimeState.getInventory().clearInventory();
 
@@ -87,8 +87,8 @@ public class InventoryStateUpdater
 		}
 	}
 
-	private void refreshEquipment(RuntimeState runtimeState, RuntimeConditionRequirements requirements,
-		ItemContainer itemContainer)
+	private void refreshEquipment(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			ItemContainer itemContainer)
 	{
 		List<String> equippedItems = new ArrayList<>();
 

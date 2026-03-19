@@ -7,7 +7,7 @@ import net.runelite.api.Tile;
 import net.runelite.api.TileItem;
 import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 @Singleton
@@ -21,7 +21,7 @@ public class GroundItemStateUpdater
 		this.itemNameResolver = itemNameResolver;
 	}
 
-	public void refresh(RuntimeState runtimeState, RuntimeConditionRequirements requirements, Client client)
+	public void refresh(RuntimeState runtimeState, RuntimeStateWatchlist requirements, Client client)
 	{
 		runtimeState.getGroundItems().clear();
 
@@ -72,7 +72,7 @@ public class GroundItemStateUpdater
 		}
 	}
 
-	public boolean onItemSpawned(RuntimeState runtimeState, RuntimeConditionRequirements requirements, ItemSpawned event)
+	public boolean onItemSpawned(RuntimeState runtimeState, RuntimeStateWatchlist requirements, ItemSpawned event)
 	{
 		String itemName = itemNameResolver.resolve(event.getItem().getId());
 
@@ -85,7 +85,7 @@ public class GroundItemStateUpdater
 		return false;
 	}
 
-	public boolean onItemDespawned(RuntimeState runtimeState, RuntimeConditionRequirements requirements, ItemDespawned event)
+	public boolean onItemDespawned(RuntimeState runtimeState, RuntimeStateWatchlist requirements, ItemDespawned event)
 	{
 		String itemName = itemNameResolver.resolve(event.getItem().getId());
 

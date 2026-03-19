@@ -2,12 +2,12 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.FormatterUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class XpGainConditionRuntimeHandler implements ConditionRuntimeHandler<XpGainCondition>
+public class XpGainConditionRuntimeHandler implements ConditionRuntimeAdapter<XpGainCondition>
 {
 	@Override
 	public Class<XpGainCondition> getConditionType()
@@ -29,7 +29,7 @@ public class XpGainConditionRuntimeHandler implements ConditionRuntimeHandler<Xp
 	}
 
 	@Override
-	public void contributeRequirements(XpGainCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(XpGainCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireXpGainSkill(condition.getSkill());
 	}
@@ -44,7 +44,6 @@ public class XpGainConditionRuntimeHandler implements ConditionRuntimeHandler<Xp
 			return null;
 		}
 
-		return ConditionRuntimeHandlerSupport.formatSkill(skill) + " "
-				+ (runtimeState.getSkills().hasXpGain(skill) ? "xp" : "idle");
+		return FormatterUtils.format(skill) + " " + (runtimeState.getSkills().hasXpGain(skill) ? "xp" : "idle");
 	}
 }

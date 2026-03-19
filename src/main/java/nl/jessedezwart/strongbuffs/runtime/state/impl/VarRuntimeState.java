@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime.state;
+package nl.jessedezwart.strongbuffs.runtime.state.impl;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,7 +9,7 @@ import net.runelite.api.Prayer;
 public class VarRuntimeState
 {
 	private int specialAttackPercent;
-	private RuntimeState.PoisonState poisonState = RuntimeState.PoisonState.NONE;
+	private PoisonState poisonState = PoisonState.NONE;
 	private boolean slayerTaskActive;
 	private int slayerTaskRemaining;
 	private final Set<Prayer> activePrayers = EnumSet.noneOf(Prayer.class);
@@ -24,14 +24,14 @@ public class VarRuntimeState
 		this.specialAttackPercent = specialAttackPercent;
 	}
 
-	public RuntimeState.PoisonState getPoisonState()
+	public PoisonState getPoisonState()
 	{
 		return poisonState;
 	}
 
-	public void setPoisonState(RuntimeState.PoisonState poisonState)
+	public void setPoisonState(PoisonState poisonState)
 	{
-		this.poisonState = poisonState == null ? RuntimeState.PoisonState.NONE : poisonState;
+		this.poisonState = poisonState == null ? PoisonState.NONE : poisonState;
 	}
 
 	public boolean isSlayerTaskActive()
@@ -94,9 +94,14 @@ public class VarRuntimeState
 	public void clear()
 	{
 		specialAttackPercent = 0;
-		poisonState = RuntimeState.PoisonState.NONE;
+		poisonState = PoisonState.NONE;
 		slayerTaskActive = false;
 		slayerTaskRemaining = 0;
 		activePrayers.clear();
+	}
+
+	public enum PoisonState
+	{
+		NONE, POISON, VENOM
 	}
 }

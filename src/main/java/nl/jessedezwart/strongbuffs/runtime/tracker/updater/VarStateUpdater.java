@@ -6,14 +6,15 @@ import net.runelite.api.Client;
 import net.runelite.api.Prayer;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.VarPlayerID;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.VarRuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 @Singleton
 public class VarStateUpdater
 {
-	public void refresh(RuntimeState runtimeState, RuntimeConditionRequirements requirements, Client client)
+	public void refresh(RuntimeState runtimeState, RuntimeStateWatchlist requirements, Client client)
 	{
 		if (requirements.tracksSpecialAttack())
 		{
@@ -38,8 +39,8 @@ public class VarStateUpdater
 		}
 	}
 
-	public EnumSet<RuntimeTrigger> onVarbitChanged(RuntimeState runtimeState, RuntimeConditionRequirements requirements,
-		Client client, VarbitChanged event)
+	public EnumSet<RuntimeTrigger> onVarbitChanged(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			Client client, VarbitChanged event)
 	{
 		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);
 
@@ -79,21 +80,21 @@ public class VarStateUpdater
 		return triggers;
 	}
 
-	private static RuntimeState.PoisonState readPoisonState(Client client)
+	private static VarRuntimeState.PoisonState readPoisonState(Client client)
 	{
 		int poisonValue = client.getVarpValue(VarPlayerID.POISON);
 
 		if (poisonValue >= 1000000)
 		{
-			return RuntimeState.PoisonState.VENOM;
+			return VarRuntimeState.PoisonState.VENOM;
 		}
 
 		if (poisonValue > 0)
 		{
-			return RuntimeState.PoisonState.POISON;
+			return VarRuntimeState.PoisonState.POISON;
 		}
 
-		return RuntimeState.PoisonState.NONE;
+		return VarRuntimeState.PoisonState.NONE;
 	}
 
 	private static boolean isPrayerActive(Client client, Prayer prayer)

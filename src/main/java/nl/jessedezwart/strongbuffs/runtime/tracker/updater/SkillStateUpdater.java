@@ -5,14 +5,14 @@ import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.api.events.StatChanged;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 @Singleton
 public class SkillStateUpdater
 {
-	public void refresh(RuntimeState runtimeState, RuntimeConditionRequirements requirements, Client client)
+	public void refresh(RuntimeState runtimeState, RuntimeStateWatchlist requirements, Client client)
 	{
 		if (requirements.tracksHitpoints())
 		{
@@ -30,8 +30,8 @@ public class SkillStateUpdater
 		}
 	}
 
-	public EnumSet<RuntimeTrigger> onStatChanged(RuntimeState runtimeState, RuntimeConditionRequirements requirements,
-		StatChanged event)
+	public EnumSet<RuntimeTrigger> onStatChanged(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			StatChanged event)
 	{
 		Skill skill = event.getSkill();
 		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);

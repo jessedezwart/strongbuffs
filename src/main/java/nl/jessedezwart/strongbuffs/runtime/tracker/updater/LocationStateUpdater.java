@@ -4,14 +4,14 @@ import java.util.EnumSet;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.coords.WorldPoint;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
 @Singleton
 public class LocationStateUpdater
 {
-	public void refresh(RuntimeState runtimeState, RuntimeConditionRequirements requirements, Client client)
+	public void refresh(RuntimeState runtimeState, RuntimeStateWatchlist requirements, Client client)
 	{
 		if (requirements.tracksRunEnergy())
 		{
@@ -29,8 +29,8 @@ public class LocationStateUpdater
 		}
 	}
 
-	public EnumSet<RuntimeTrigger> onGameTick(RuntimeState runtimeState, RuntimeConditionRequirements requirements,
-		Client client)
+	public EnumSet<RuntimeTrigger> onGameTick(RuntimeState runtimeState, RuntimeStateWatchlist requirements,
+			Client client)
 	{
 		EnumSet<RuntimeTrigger> triggers = EnumSet.of(RuntimeTrigger.GAME_TICK);
 

@@ -1,11 +1,11 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemEquippedCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class ItemEquippedConditionRuntimeHandler implements ConditionRuntimeHandler<ItemEquippedCondition>
+public class ItemEquippedConditionRuntimeHandler implements ConditionRuntimeAdapter<ItemEquippedCondition>
 {
 	@Override
 	public Class<ItemEquippedCondition> getConditionType()
@@ -20,7 +20,7 @@ public class ItemEquippedConditionRuntimeHandler implements ConditionRuntimeHand
 	}
 
 	@Override
-	public void contributeRequirements(ItemEquippedCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(ItemEquippedCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireEquippedItem(condition.getItemName());
 	}

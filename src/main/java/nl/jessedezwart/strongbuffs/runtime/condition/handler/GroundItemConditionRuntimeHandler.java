@@ -1,12 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
-import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.InventoryRuntimeState;
 
-public class GroundItemConditionRuntimeHandler implements ConditionRuntimeHandler<GroundItemCondition>
+public class GroundItemConditionRuntimeHandler implements ConditionRuntimeAdapter<GroundItemCondition>
 {
 	@Override
 	public Class<GroundItemCondition> getConditionType()
@@ -21,7 +21,7 @@ public class GroundItemConditionRuntimeHandler implements ConditionRuntimeHandle
 	}
 
 	@Override
-	public void contributeRequirements(GroundItemCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(GroundItemCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireGroundItem(condition.getItemName());
 	}

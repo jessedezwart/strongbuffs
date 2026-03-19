@@ -1,11 +1,11 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInInstanceCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class PlayerInInstanceConditionRuntimeHandler implements ConditionRuntimeHandler<PlayerInInstanceCondition>
+public class PlayerInInstanceConditionRuntimeHandler implements ConditionRuntimeAdapter<PlayerInInstanceCondition>
 {
 	@Override
 	public Class<PlayerInInstanceCondition> getConditionType()
@@ -20,8 +20,7 @@ public class PlayerInInstanceConditionRuntimeHandler implements ConditionRuntime
 	}
 
 	@Override
-	public void contributeRequirements(PlayerInInstanceCondition condition,
-			RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(PlayerInInstanceCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requirePlayerInstance();
 	}

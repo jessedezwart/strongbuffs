@@ -1,6 +1,11 @@
 package nl.jessedezwart.strongbuffs.runtime.state;
 
 import lombok.Getter;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.GroundItemRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.InventoryRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.LocationRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.SkillRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.VarRuntimeState;
 
 @Getter
 public class RuntimeState
@@ -18,12 +23,5 @@ public class RuntimeState
 		inventory.clear();
 		groundItems.clear();
 		location.clear();
-	}
-
-	public enum PoisonState
-	{
-		NONE,
-		POISON,
-		VENOM
 	}
 }

@@ -13,6 +13,7 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRuleSet;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleCompiler;
+import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeSubscription;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 import org.junit.Test;
 
@@ -47,6 +48,8 @@ public class RuleCompilerTest
 			java.util.EnumSet.of(RuntimeTrigger.XP_GAIN)).size());
 		assertEquals(1, compiledRuleSet.getTriggerIndex().getRulesForTriggers(
 			java.util.EnumSet.of(RuntimeTrigger.GAME_TICK)).size());
+		assertTrue(compiledRuleSet.getRequirementPlan().requiresSubscription(RuntimeSubscription.STAT_CHANGED));
+		assertTrue(compiledRuleSet.getRequirementPlan().requiresSubscription(RuntimeSubscription.GAME_TICK));
 	}
 
 	private static ConditionGroup withCondition(nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition condition)

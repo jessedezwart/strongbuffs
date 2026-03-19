@@ -1,12 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemCountCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class ItemCountConditionRuntimeHandler implements ConditionRuntimeHandler<ItemCountCondition>
+public class ItemCountConditionRuntimeHandler implements ConditionRuntimeAdapter<ItemCountCondition>
 {
 	@Override
 	public Class<ItemCountCondition> getConditionType()
@@ -17,12 +17,12 @@ public class ItemCountConditionRuntimeHandler implements ConditionRuntimeHandler
 	@Override
 	public boolean matches(ItemCountCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionRuntimeHandlerSupport.matchesNumeric(condition,
+		return ConditionMatcherUtils.matches(condition,
 				runtimeState.getInventory().getInventoryItemCount(condition.getItemName()));
 	}
 
 	@Override
-	public void contributeRequirements(ItemCountCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(ItemCountCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireInventoryItem(condition.getItemName());
 	}

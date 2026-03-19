@@ -2,11 +2,11 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import net.runelite.api.coords.WorldPoint;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInZoneCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class PlayerInZoneConditionRuntimeHandler implements ConditionRuntimeHandler<PlayerInZoneCondition>
+public class PlayerInZoneConditionRuntimeHandler implements ConditionRuntimeAdapter<PlayerInZoneCondition>
 {
 	@Override
 	public Class<PlayerInZoneCondition> getConditionType()
@@ -31,7 +31,7 @@ public class PlayerInZoneConditionRuntimeHandler implements ConditionRuntimeHand
 	}
 
 	@Override
-	public void contributeRequirements(PlayerInZoneCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(PlayerInZoneCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requirePlayerLocation();
 	}

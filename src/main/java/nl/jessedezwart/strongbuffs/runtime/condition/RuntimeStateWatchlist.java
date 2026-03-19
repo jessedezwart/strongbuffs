@@ -6,7 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
-import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.InventoryRuntimeState;
 
 /**
  * Immutable watchlist describing which runtime state slices currently matter.
@@ -19,9 +19,9 @@ import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
  * expensive game tick updates when they are not needed, for example when the
  * player only has rules that check inventory conditions while they are outside.
  */
-public final class RuntimeConditionRequirements
+public final class RuntimeStateWatchlist
 {
-	private static final RuntimeConditionRequirements EMPTY = builder().build();
+	private static final RuntimeStateWatchlist EMPTY = builder().build();
 
 	private final boolean hitpoints;
 	private final boolean prayerPoints;
@@ -38,10 +38,10 @@ public final class RuntimeConditionRequirements
 	private final Set<String> equippedItems;
 	private final Set<String> groundItems;
 
-	private RuntimeConditionRequirements(boolean hitpoints, boolean prayerPoints, boolean specialAttack,
-			boolean runEnergy, boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance,
-			Set<Prayer> prayers, Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems,
-			Set<String> equippedItems, Set<String> groundItems)
+	private RuntimeStateWatchlist(boolean hitpoints, boolean prayerPoints, boolean specialAttack, boolean runEnergy,
+			boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance, Set<Prayer> prayers,
+			Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems, Set<String> equippedItems,
+			Set<String> groundItems)
 	{
 		this.hitpoints = hitpoints;
 		this.prayerPoints = prayerPoints;
@@ -59,7 +59,7 @@ public final class RuntimeConditionRequirements
 		this.groundItems = Collections.unmodifiableSet(groundItems);
 	}
 
-	public static RuntimeConditionRequirements empty()
+	public static RuntimeStateWatchlist empty()
 	{
 		return EMPTY;
 	}
@@ -276,10 +276,10 @@ public final class RuntimeConditionRequirements
 			return this;
 		}
 
-		public RuntimeConditionRequirements build()
+		public RuntimeStateWatchlist build()
 		{
-			return new RuntimeConditionRequirements(hitpoints, prayerPoints, specialAttack, runEnergy, poison,
-					slayerTask, playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
+			return new RuntimeStateWatchlist(hitpoints, prayerPoints, specialAttack, runEnergy, poison, slayerTask,
+					playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
 					new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems),
 					new LinkedHashSet<>(groundItems));
 		}
@@ -288,7 +288,7 @@ public final class RuntimeConditionRequirements
 		 * Merges another requirement set into this builder when compiling multiple
 		 * rules together.
 		 */
-		public Builder merge(RuntimeConditionRequirements requirements)
+		public Builder merge(RuntimeStateWatchlist requirements)
 		{
 			if (requirements == null)
 			{

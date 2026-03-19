@@ -25,14 +25,15 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SlayerTaskCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionChecker;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionTreeEvaluator;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.VarRuntimeState;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ConditionCheckerTest
 {
-	private final ConditionChecker checker = new ConditionChecker();
+	private final ConditionTreeEvaluator checker = new ConditionTreeEvaluator();
 	private RuntimeState state;
 
 	@Before
@@ -44,7 +45,7 @@ public class ConditionCheckerTest
 		state.getSkills().setCurrentTick(1);
 		state.getVars().setSpecialAttackPercent(100);
 		state.getLocation().setRunEnergyPercent(35);
-		state.getVars().setPoisonState(RuntimeState.PoisonState.VENOM);
+		state.getVars().setPoisonState(VarRuntimeState.PoisonState.VENOM);
 		state.getVars().setSlayerTaskActive(true);
 		state.getVars().setSlayerTaskRemaining(12);
 		state.getSkills().setRealSkillLevel(Skill.ATTACK, 70);

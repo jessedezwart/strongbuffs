@@ -13,20 +13,25 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.runtime.action.RuntimeActionHandler;
 import nl.jessedezwart.strongbuffs.runtime.action.RuntimeOverlay;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeRegistry;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapterRegistry;
 import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 /**
  * Manages the set of text entries displayed by the {@link RuntimeOverlay}.
  *
- * <p>Persistent entries remain visible as long as their rule is active. Transient entries
- * auto-expire after {@value #TRANSIENT_DURATION_MILLIS}ms. On every mutation the full entry
- * list is republished to the overlay so it always renders the current set.</p>
+ * <p>
+ * Persistent entries remain visible as long as their rule is active. Transient
+ * entries auto-expire after {@value #TRANSIENT_DURATION_MILLIS}ms. On every
+ * mutation the full entry list is republished to the overlay so it always
+ * renders the current set.
+ * </p>
  *
- * <p>When "show value" is enabled on an action, the service walks the rule's condition tree to
- * find the first leaf condition and formats its live value (e.g. "43 hp") via
- * {@link ConditionRuntimeRegistry#formatValue}.</p>
+ * <p>
+ * When "show value" is enabled on an action, the service walks the rule's
+ * condition tree to find the first leaf condition and formats its live value
+ * (e.g. "43 hp") via {@link ConditionRuntimeAdapterRegistry#formatValue}.
+ * </p>
  */
 @Singleton
 public class OverlayTextService implements RuntimeActionHandler<OverlayTextAction>
@@ -34,13 +39,13 @@ public class OverlayTextService implements RuntimeActionHandler<OverlayTextActio
 	private static final long TRANSIENT_DURATION_MILLIS = 1800L;
 
 	private final RuntimeOverlay runtimeOverlay;
-	private final ConditionRuntimeRegistry conditionRuntimeRegistry;
+	private final ConditionRuntimeAdapterRegistry conditionRuntimeRegistry;
 
 	private final Map<String, RuntimeOverlay.TextEntry> persistentEntries = new LinkedHashMap<>();
 	private final Map<String, RuntimeOverlay.TextEntry> transientEntries = new LinkedHashMap<>();
 
 	@Inject
-	public OverlayTextService(RuntimeOverlay runtimeOverlay, ConditionRuntimeRegistry conditionRuntimeRegistry)
+	public OverlayTextService(RuntimeOverlay runtimeOverlay, ConditionRuntimeAdapterRegistry conditionRuntimeRegistry)
 	{
 		this.runtimeOverlay = runtimeOverlay;
 		this.conditionRuntimeRegistry = conditionRuntimeRegistry;
@@ -104,7 +109,7 @@ public class OverlayTextService implements RuntimeActionHandler<OverlayTextActio
 	}
 
 	private RuntimeOverlay.TextEntry buildEntry(CompiledRule rule, OverlayTextAction action, RuntimeState runtimeState,
-		long expiresAtMillis)
+			long expiresAtMillis)
 	{
 		String text = action.getText() == null ? "" : action.getText().trim();
 

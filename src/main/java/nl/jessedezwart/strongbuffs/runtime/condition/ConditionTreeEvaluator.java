@@ -10,20 +10,23 @@ import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 /**
  * Evaluates persisted condition definitions against cached runtime state.
  *
- * <p>The checker stays intentionally small: boolean tree traversal lives here, while the meaning of
- * each leaf condition type is delegated to {@link ConditionRuntimeRegistry}.</p>
+ * <p>
+ * The checker stays intentionally small: boolean tree traversal lives here,
+ * while the meaning of each leaf condition type is delegated to
+ * {@link ConditionRuntimeAdapterRegistry}.
+ * </p>
  */
-public class ConditionChecker
+public class ConditionTreeEvaluator
 {
-	private final ConditionRuntimeRegistry conditionRuntimeRegistry;
+	private final ConditionRuntimeAdapterRegistry conditionRuntimeRegistry;
 
-	public ConditionChecker()
+	public ConditionTreeEvaluator()
 	{
-		this(new ConditionRuntimeRegistry());
+		this(new ConditionRuntimeAdapterRegistry());
 	}
 
 	@Inject
-	public ConditionChecker(ConditionRuntimeRegistry conditionRuntimeRegistry)
+	public ConditionTreeEvaluator(ConditionRuntimeAdapterRegistry conditionRuntimeRegistry)
 	{
 		this.conditionRuntimeRegistry = conditionRuntimeRegistry;
 	}

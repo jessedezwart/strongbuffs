@@ -1,12 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class PrayerPointsConditionRuntimeHandler implements ConditionRuntimeHandler<PrayerPointsCondition>
+public class PrayerPointsConditionRuntimeHandler implements ConditionRuntimeAdapter<PrayerPointsCondition>
 {
 	@Override
 	public Class<PrayerPointsCondition> getConditionType()
@@ -17,11 +17,11 @@ public class PrayerPointsConditionRuntimeHandler implements ConditionRuntimeHand
 	@Override
 	public boolean matches(PrayerPointsCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionRuntimeHandlerSupport.matchesNumeric(condition, runtimeState.getSkills().getPrayerPoints());
+		return ConditionMatcherUtils.matches(condition, runtimeState.getSkills().getPrayerPoints());
 	}
 
 	@Override
-	public void contributeRequirements(PrayerPointsCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(PrayerPointsCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requirePrayerPoints();
 	}

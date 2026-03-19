@@ -49,7 +49,7 @@ public class RuleRuntimeController
 		actionDispatcher.startUp();
 		runtimeConditionTracker.addListener(ruleEngine);
 		ruleEngine.setCompiledRuleSet(compiledRuleSet);
-		runtimeConditionTracker.setRequirements(compiledRuleSet.getRequirements());
+		runtimeConditionTracker.setRequirementPlan(compiledRuleSet.getRequirementPlan());
 		runtimeConditionTracker.startUp();
 	}
 
@@ -76,6 +76,6 @@ public class RuleRuntimeController
 	{
 		compiledRuleSet = ruleCompiler.compile(rules);
 		ruleEngine.setCompiledRuleSet(compiledRuleSet);
-		runtimeConditionTracker.setRequirements(compiledRuleSet.getRequirements());
+		runtimeConditionTracker.setRequirementPlan(compiledRuleSet.getRequirementPlan());
 	}
 }

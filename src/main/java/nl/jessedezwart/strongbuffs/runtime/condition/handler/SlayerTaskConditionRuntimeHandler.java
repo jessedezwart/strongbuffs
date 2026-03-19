@@ -1,12 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.SlayerTaskCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class SlayerTaskConditionRuntimeHandler implements ConditionRuntimeHandler<SlayerTaskCondition>
+public class SlayerTaskConditionRuntimeHandler implements ConditionRuntimeAdapter<SlayerTaskCondition>
 {
 	@Override
 	public Class<SlayerTaskCondition> getConditionType()
@@ -27,12 +27,11 @@ public class SlayerTaskConditionRuntimeHandler implements ConditionRuntimeHandle
 			return runtimeState.getVars().isSlayerTaskActive();
 		}
 
-		return ConditionRuntimeHandlerSupport.matchesNumeric(condition,
-				runtimeState.getVars().getSlayerTaskRemaining());
+		return ConditionMatcherUtils.matches(condition, runtimeState.getVars().getSlayerTaskRemaining());
 	}
 
 	@Override
-	public void contributeRequirements(SlayerTaskCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(SlayerTaskCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireSlayerTask();
 	}

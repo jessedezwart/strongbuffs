@@ -3,7 +3,7 @@ package nl.jessedezwart.strongbuffs.runtime.tracker.updater;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.client.game.ItemManager;
-import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.InventoryRuntimeState;
 
 @Singleton
 public class ItemNameResolver

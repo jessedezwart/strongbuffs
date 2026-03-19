@@ -1,12 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.RunEnergyCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandlerSupport;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
+import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
-public class RunEnergyConditionRuntimeHandler implements ConditionRuntimeHandler<RunEnergyCondition>
+public class RunEnergyConditionRuntimeHandler implements ConditionRuntimeAdapter<RunEnergyCondition>
 {
 	@Override
 	public Class<RunEnergyCondition> getConditionType()
@@ -17,12 +17,11 @@ public class RunEnergyConditionRuntimeHandler implements ConditionRuntimeHandler
 	@Override
 	public boolean matches(RunEnergyCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionRuntimeHandlerSupport.matchesNumeric(condition,
-				runtimeState.getLocation().getRunEnergyPercent());
+		return ConditionMatcherUtils.matches(condition, runtimeState.getLocation().getRunEnergyPercent());
 	}
 
 	@Override
-	public void contributeRequirements(RunEnergyCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(RunEnergyCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requireRunEnergy();
 	}

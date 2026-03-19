@@ -1,11 +1,12 @@
 package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 
 import nl.jessedezwart.strongbuffs.model.condition.impl.PoisonCondition;
-import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
+import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
+import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.VarRuntimeState;
 
-public class PoisonConditionRuntimeHandler implements ConditionRuntimeHandler<PoisonCondition>
+public class PoisonConditionRuntimeHandler implements ConditionRuntimeAdapter<PoisonCondition>
 {
 	@Override
 	public Class<PoisonCondition> getConditionType()
@@ -24,18 +25,18 @@ public class PoisonConditionRuntimeHandler implements ConditionRuntimeHandler<Po
 		switch (condition.getPoisonType())
 		{
 		case POISON:
-			return runtimeState.getVars().getPoisonState() == RuntimeState.PoisonState.POISON;
+			return runtimeState.getVars().getPoisonState() == VarRuntimeState.PoisonState.POISON;
 		case VENOM:
-			return runtimeState.getVars().getPoisonState() == RuntimeState.PoisonState.VENOM;
+			return runtimeState.getVars().getPoisonState() == VarRuntimeState.PoisonState.VENOM;
 		case POISON_OR_VENOM:
-			return runtimeState.getVars().getPoisonState() != RuntimeState.PoisonState.NONE;
+			return runtimeState.getVars().getPoisonState() != VarRuntimeState.PoisonState.NONE;
 		default:
 			return false;
 		}
 	}
 
 	@Override
-	public void contributeRequirements(PoisonCondition condition, RuntimeConditionRequirements.Builder builder)
+	public void contributeRequirements(PoisonCondition condition, RuntimeStateWatchlist.Builder builder)
 	{
 		builder.requirePoison();
 	}
