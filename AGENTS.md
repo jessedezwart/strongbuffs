@@ -1,10 +1,8 @@
 # Strong Buffs Agent Notes
 
-## Read These First
+## Read First
 
 - `README.md`
-- `docs/jagex-guidelines.md`
-- `docs/rejected-features.md`
 
 If you are adding or changing a condition, also read:
 
@@ -16,10 +14,19 @@ If you are adding or changing a condition, also read:
 - Legal constraints and project whitelist: `docs/jagex-guidelines.md` and `docs/rejected-features.md`
 - Task-specific workflows: `skills/*/SKILL.md`
 
+## Help
+Read relevant docs:
+https://github.com/runelite/runelite/wiki/Developer-Guide
+https://github.com/runelite/runelite/wiki/Creating-plugin-config-panels
+https://static.runelite.net/runelite-api/apidocs/
+https://static.runelite.net/runelite-client/apidocs/
+https://github.com/runelite/runelite/wiki/Code-Conventions
+https://github.com/runelite/runelite/wiki/Working-with-client-scripts
+https://github.com/runelite/runelite/wiki/VarPlayers%2C-VarBits%2C-and-VarClients
+
 ## Hard Rules
 
-- If a feature is not clearly allowed by `docs/rejected-features.md`, do not implement it.
-- Never modify `docs/runelite-wiki/rejected-features.md`.
+- Never modify `docs/rejected-features.md`.
 - Track only the local player's own state. Never use other-player data.
 - Keep persisted definitions free of direct RuneLite API access.
 - Prefer event-driven tracking over polling.

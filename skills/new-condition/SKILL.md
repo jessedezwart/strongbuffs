@@ -11,13 +11,8 @@ Read `docs/runelite-wiki/rejected-features.md` and `docs/jagex-guidelines.md` an
 Check if the condition is allowed. If not, decline to implement and explain to the user why.
 
 ## Step 2 - Identify the trigger and API
-Read relevant docs from [RuneLite Wiki](https://github.com/runelite/runelite/wiki), especially:
-- `vars.md`
-- `events-reference.md`
-- `developer-guide.md`
-
 Determine:
-- which RuneLite event should trigger re-evaluation
+- which RuneLite event should trigger re-evaluation, check README.md for the API resources.
 - which approved API/VarBit/VarPlayer/client method provides the state
 - whether cached runtime state is needed
 - whether the condition belongs in var, stat, item-container, ground-item, or location-triggered routing

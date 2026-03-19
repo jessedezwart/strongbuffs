@@ -228,7 +228,15 @@ public class RuntimeConditionTracker
 		}
 
 		runtimeState.getSkills().setCurrentTick(client.getTickCount());
-		notifyListeners(inventoryStateUpdater.onItemContainerChanged(runtimeState, requirements, event));
+		EnumSet<RuntimeTrigger> triggers = inventoryStateUpdater.onItemContainerChanged(runtimeState, requirements,
+				event);
+
+		if (requirements.tracksInventoryValue() || requirements.tracksBankValue())
+		{
+			triggers.addAll(inventoryStateUpdater.onItemContainerValueChanged(runtimeState, requirements, event));
+		}
+
+		notifyListeners(triggers);
 	}
 
 	private void onItemSpawned(ItemSpawned event)
@@ -326,6 +334,7 @@ public class RuntimeConditionTracker
 		skillStateUpdater.refresh(runtimeState, requirements, client);
 		varStateUpdater.refresh(runtimeState, requirements, client);
 		inventoryStateUpdater.refresh(runtimeState, requirements, client);
+		inventoryStateUpdater.refreshValues(runtimeState, requirements, client);
 		groundItemStateUpdater.refresh(runtimeState, requirements, client);
 		locationStateUpdater.refresh(runtimeState, requirements, client);
 

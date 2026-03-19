@@ -10,13 +10,15 @@ import net.runelite.api.coords.WorldPoint;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
+import nl.jessedezwart.strongbuffs.model.condition.impl.BankValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.InventoryValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemCountCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemEquippedCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemPriceCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInInstanceCondition;
-import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInZoneCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PoisonCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerActiveCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
@@ -57,6 +59,9 @@ public class ConditionCheckerTest
 		state.getVars().setActivePrayers(Arrays.asList(Prayer.THICK_SKIN, Prayer.BURST_OF_STRENGTH));
 		state.getLocation().setPlayerLocation(new WorldPoint(3200, 3205, 0));
 		state.getLocation().setInInstance(true);
+		state.getInventory().setItemPrice("abyssal whip", 2500000L);
+		state.getInventory().setInventoryTotalValue(750000L);
+		state.getInventory().setBankTotalValue(150000000L);
 	}
 
 	@Test
@@ -197,14 +202,32 @@ public class ConditionCheckerTest
 	}
 
 	@Test
-	public void evaluatesPlayerInZoneCondition()
+	public void evaluatesItemPriceCondition()
 	{
-		PlayerInZoneCondition condition = new PlayerInZoneCondition();
-		condition.setSouthWestX(3199);
-		condition.setSouthWestY(3200);
-		condition.setNorthEastX(3201);
-		condition.setNorthEastY(3210);
-		condition.setPlane(0);
+		ItemPriceCondition condition = new ItemPriceCondition();
+		condition.setItemName("Abyssal whip");
+		condition.setOperator(ComparisonOperator.GREATER_THAN_OR_EQUAL);
+		condition.setThreshold(2000000);
+
+		assertTrue(checker.evaluate(condition, state));
+	}
+
+	@Test
+	public void evaluatesInventoryValueCondition()
+	{
+		InventoryValueCondition condition = new InventoryValueCondition();
+		condition.setOperator(ComparisonOperator.GREATER_THAN_OR_EQUAL);
+		condition.setThreshold(500000);
+
+		assertTrue(checker.evaluate(condition, state));
+	}
+
+	@Test
+	public void evaluatesBankValueCondition()
+	{
+		BankValueCondition condition = new BankValueCondition();
+		condition.setOperator(ComparisonOperator.GREATER_THAN_OR_EQUAL);
+		condition.setThreshold(100000000);
 
 		assertTrue(checker.evaluate(condition, state));
 	}

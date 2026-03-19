@@ -31,6 +31,8 @@ public final class RuntimeStateWatchlist
 	private final boolean slayerTask;
 	private final boolean playerLocation;
 	private final boolean playerInstance;
+	private final boolean inventoryValue;
+	private final boolean bankValue;
 	private final Set<Prayer> prayers;
 	private final Set<Skill> realSkills;
 	private final Set<Skill> xpGainSkills;
@@ -38,10 +40,13 @@ public final class RuntimeStateWatchlist
 	private final Set<String> equippedItems;
 	private final Set<String> groundItems;
 
+	private final Set<String> itemPrices;
+
 	private RuntimeStateWatchlist(boolean hitpoints, boolean prayerPoints, boolean specialAttack, boolean runEnergy,
-			boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance, Set<Prayer> prayers,
+			boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance,
+			boolean inventoryValue, boolean bankValue, Set<Prayer> prayers,
 			Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems, Set<String> equippedItems,
-			Set<String> groundItems)
+			Set<String> groundItems, Set<String> itemPrices)
 	{
 		this.hitpoints = hitpoints;
 		this.prayerPoints = prayerPoints;
@@ -51,12 +56,15 @@ public final class RuntimeStateWatchlist
 		this.slayerTask = slayerTask;
 		this.playerLocation = playerLocation;
 		this.playerInstance = playerInstance;
+		this.inventoryValue = inventoryValue;
+		this.bankValue = bankValue;
 		this.prayers = Collections.unmodifiableSet(prayers);
 		this.realSkills = Collections.unmodifiableSet(realSkills);
 		this.xpGainSkills = Collections.unmodifiableSet(xpGainSkills);
 		this.inventoryItems = Collections.unmodifiableSet(inventoryItems);
 		this.equippedItems = Collections.unmodifiableSet(equippedItems);
 		this.groundItems = Collections.unmodifiableSet(groundItems);
+		this.itemPrices = Collections.unmodifiableSet(itemPrices);
 	}
 
 	public static RuntimeStateWatchlist empty()
@@ -107,6 +115,26 @@ public final class RuntimeStateWatchlist
 	public boolean tracksPlayerInstance()
 	{
 		return playerInstance;
+	}
+
+	public boolean tracksInventoryValue()
+	{
+		return inventoryValue;
+	}
+
+	public boolean tracksBankValue()
+	{
+		return bankValue;
+	}
+
+	public Set<String> getItemPrices()
+	{
+		return itemPrices;
+	}
+
+	public boolean hasItemPriceTracking()
+	{
+		return !itemPrices.isEmpty();
 	}
 
 	public Set<Prayer> getPrayers()
@@ -173,12 +201,15 @@ public final class RuntimeStateWatchlist
 		private boolean slayerTask;
 		private boolean playerLocation;
 		private boolean playerInstance;
+		private boolean inventoryValue;
+		private boolean bankValue;
 		private final Set<Prayer> prayers = EnumSet.noneOf(Prayer.class);
 		private final Set<Skill> realSkills = EnumSet.noneOf(Skill.class);
 		private final Set<Skill> xpGainSkills = EnumSet.noneOf(Skill.class);
 		private final Set<String> inventoryItems = new LinkedHashSet<>();
 		private final Set<String> equippedItems = new LinkedHashSet<>();
 		private final Set<String> groundItems = new LinkedHashSet<>();
+		private final Set<String> itemPrices = new LinkedHashSet<>();
 
 		public Builder requireHitpoints()
 		{
@@ -276,12 +307,30 @@ public final class RuntimeStateWatchlist
 			return this;
 		}
 
+		public Builder requireInventoryValue()
+		{
+			inventoryValue = true;
+			return this;
+		}
+
+		public Builder requireBankValue()
+		{
+			bankValue = true;
+			return this;
+		}
+
+		public Builder requireItemPrice(String itemName)
+		{
+			addName(itemPrices, itemName);
+			return this;
+		}
+
 		public RuntimeStateWatchlist build()
 		{
 			return new RuntimeStateWatchlist(hitpoints, prayerPoints, specialAttack, runEnergy, poison, slayerTask,
-					playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
-					new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems),
-					new LinkedHashSet<>(groundItems));
+					playerLocation, playerInstance, inventoryValue, bankValue, copyPrayers(), copyRealSkills(),
+					copyXpGainSkills(), new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems),
+					new LinkedHashSet<>(groundItems), new LinkedHashSet<>(itemPrices));
 		}
 
 		/**
@@ -333,6 +382,21 @@ public final class RuntimeStateWatchlist
 			if (requirements.tracksPlayerInstance())
 			{
 				requirePlayerInstance();
+			}
+
+			if (requirements.tracksInventoryValue())
+			{
+				requireInventoryValue();
+			}
+
+			if (requirements.tracksBankValue())
+			{
+				requireBankValue();
+			}
+
+			for (String itemName : requirements.getItemPrices())
+			{
+				requireItemPrice(itemName);
 			}
 
 			for (Prayer prayer : requirements.getPrayers())

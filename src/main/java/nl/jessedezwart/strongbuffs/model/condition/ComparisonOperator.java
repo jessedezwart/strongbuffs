@@ -21,6 +21,11 @@ public enum ComparisonOperator
 
 	public boolean matches(int actualValue, int thresholdValue)
 	{
+		return matches((long) actualValue, (long) thresholdValue);
+	}
+
+	public boolean matches(long actualValue, long thresholdValue)
+	{
 		switch (this)
 		{
 			case LESS_THAN:

@@ -94,6 +94,23 @@ public class RuntimeTrackingPlanner
 			triggers.add(RuntimeTrigger.GAME_TICK);
 		}
 
+		if (resolvedRequirements.tracksInventoryValue())
+		{
+			subscriptions.add(RuntimeSubscription.ITEM_CONTAINER_CHANGED);
+			triggers.add(RuntimeTrigger.INVENTORY);
+		}
+
+		if (resolvedRequirements.tracksBankValue())
+		{
+			subscriptions.add(RuntimeSubscription.ITEM_CONTAINER_CHANGED);
+			triggers.add(RuntimeTrigger.BANK);
+		}
+
+		if (resolvedRequirements.hasItemPriceTracking())
+		{
+			triggers.add(RuntimeTrigger.ITEM_PRICE);
+		}
+
 		if (resolvedRequirements.hasInventoryTracking())
 		{
 			subscriptions.add(RuntimeSubscription.ITEM_CONTAINER_CHANGED);

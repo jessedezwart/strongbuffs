@@ -8,13 +8,15 @@ import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.BankValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.InventoryValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemCountCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemEquippedCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemPriceCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInInstanceCondition;
-import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInZoneCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PoisonCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerActiveCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
@@ -58,8 +60,12 @@ class DefinitionRegistrations
 			ItemEquippedCondition::new));
 		definitions.add(new DefinitionRegistration<>(GroundItemCondition.class, new GroundItemCondition(),
 			GroundItemCondition::new));
-		definitions.add(new DefinitionRegistration<>(PlayerInZoneCondition.class, new PlayerInZoneCondition(),
-			PlayerInZoneCondition::new));
+		definitions.add(new DefinitionRegistration<>(ItemPriceCondition.class, new ItemPriceCondition(),
+			ItemPriceCondition::new));
+		definitions.add(new DefinitionRegistration<>(InventoryValueCondition.class, new InventoryValueCondition(),
+			InventoryValueCondition::new));
+		definitions.add(new DefinitionRegistration<>(BankValueCondition.class, new BankValueCondition(),
+			BankValueCondition::new));
 		definitions.add(new DefinitionRegistration<>(PlayerInInstanceCondition.class, new PlayerInInstanceCondition(),
 			PlayerInInstanceCondition::new));
 		definitions.add(new DefinitionRegistration<>(SpecialAttackCondition.class, new SpecialAttackCondition(),

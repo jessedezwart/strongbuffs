@@ -21,7 +21,7 @@ public class RegistryTest
 	{
 		ConditionEditorRegistry registry = new ConditionEditorRegistry();
 
-		assertEquals(15, registry.getConditionClasses().size());
+		assertEquals(17, registry.getConditionClasses().size());
 		assertTrue(registry.getByConditionClass(HpCondition.class) != null);
 		assertTrue(registry.getByConditionClass(PrayerPointsCondition.class) != null);
 		assertTrue(registry.getByConditionClass(SpecialAttackCondition.class) != null);

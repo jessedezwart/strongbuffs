@@ -14,4 +14,10 @@ public final class ConditionMatcherUtil
 		ComparisonOperator operator = condition.getOperator();
 		return operator != null && operator.matches(actualValue, condition.getThreshold());
 	}
+
+	public static boolean matchesLong(NumericConditionDefinition condition, long actualValue)
+	{
+		ComparisonOperator operator = condition.getOperator();
+		return operator != null && operator.matches(actualValue, (long) condition.getThreshold());
+	}
 }

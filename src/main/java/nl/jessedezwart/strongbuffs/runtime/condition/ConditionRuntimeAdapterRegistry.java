@@ -4,13 +4,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.runtime.condition.handler.BankValueConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.GroundItemConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.HpConditionRuntimeHandler;
+import nl.jessedezwart.strongbuffs.runtime.condition.handler.InventoryValueConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.ItemCountConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.ItemEquippedConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.ItemInInventoryConditionRuntimeHandler;
+import nl.jessedezwart.strongbuffs.runtime.condition.handler.ItemPriceConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.PlayerInInstanceConditionRuntimeHandler;
-import nl.jessedezwart.strongbuffs.runtime.condition.handler.PlayerInZoneConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.PoisonConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.PrayerActiveConditionRuntimeHandler;
 import nl.jessedezwart.strongbuffs.runtime.condition.handler.PrayerPointsConditionRuntimeHandler;
@@ -52,7 +54,9 @@ public class ConditionRuntimeAdapterRegistry
 		register(new ItemCountConditionRuntimeHandler());
 		register(new ItemEquippedConditionRuntimeHandler());
 		register(new GroundItemConditionRuntimeHandler());
-		register(new PlayerInZoneConditionRuntimeHandler());
+		register(new ItemPriceConditionRuntimeHandler());
+		register(new InventoryValueConditionRuntimeHandler());
+		register(new BankValueConditionRuntimeHandler());
 		register(new PlayerInInstanceConditionRuntimeHandler());
 	}
 

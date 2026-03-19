@@ -15,7 +15,7 @@ public class PlayerInInstanceCondition extends ConditionDefinition
 	@Override
 	public String getEditorDescription()
 	{
-		return "Inside a private instance";
+		return "Inside an instance";
 	}
 
 	@Override

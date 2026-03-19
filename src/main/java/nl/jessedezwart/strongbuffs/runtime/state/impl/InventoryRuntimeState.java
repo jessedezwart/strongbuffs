@@ -12,6 +12,9 @@ public class InventoryRuntimeState
 {
 	private final Map<String, Integer> inventoryItemCounts = new LinkedHashMap<>();
 	private final Set<String> equippedItemNames = new LinkedHashSet<>();
+	private final Map<String, Long> itemPrices = new LinkedHashMap<>();
+	private long inventoryTotalValue;
+	private long bankTotalValue;
 
 	public Map<String, Integer> getInventoryItemCounts()
 	{
@@ -69,10 +72,56 @@ public class InventoryRuntimeState
 		return normalized != null && equippedItemNames.contains(normalized);
 	}
 
+	public long getItemPrice(String itemName)
+	{
+		String normalized = normalizeName(itemName);
+		return normalized == null ? 0L : itemPrices.getOrDefault(normalized, 0L);
+	}
+
+	public void setItemPrice(String itemName, long price)
+	{
+		String normalized = normalizeName(itemName);
+
+		if (normalized == null)
+		{
+			return;
+		}
+
+		itemPrices.put(normalized, price);
+	}
+
+	public void clearItemPrices()
+	{
+		itemPrices.clear();
+	}
+
+	public long getInventoryTotalValue()
+	{
+		return inventoryTotalValue;
+	}
+
+	public void setInventoryTotalValue(long value)
+	{
+		this.inventoryTotalValue = value;
+	}
+
+	public long getBankTotalValue()
+	{
+		return bankTotalValue;
+	}
+
+	public void setBankTotalValue(long value)
+	{
+		this.bankTotalValue = value;
+	}
+
 	public void clear()
 	{
 		inventoryItemCounts.clear();
 		equippedItemNames.clear();
+		itemPrices.clear();
+		inventoryTotalValue = 0L;
+		bankTotalValue = 0L;
 	}
 
 	private static void addNormalizedNames(Set<String> target, Collection<String> names)

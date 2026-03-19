@@ -8,11 +8,13 @@ import java.util.Arrays;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.impl.BankValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.GroundItemCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.InventoryValueCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemCountCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemPriceCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInInstanceCondition;
-import nl.jessedezwart.strongbuffs.model.condition.impl.PlayerInZoneCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerActiveCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
@@ -47,12 +49,19 @@ public class RuntimeConditionRequirementsTest
 		GroundItemCondition groundItemCondition = new GroundItemCondition();
 		groundItemCondition.setItemName("Rune arrow");
 
-		PlayerInZoneCondition zoneCondition = new PlayerInZoneCondition();
 		PlayerInInstanceCondition instanceCondition = new PlayerInInstanceCondition();
+
+		ItemPriceCondition itemPriceCondition = new ItemPriceCondition();
+		itemPriceCondition.setItemName("Abyssal whip");
+
+		InventoryValueCondition inventoryValueCondition = new InventoryValueCondition();
+
+		BankValueCondition bankValueCondition = new BankValueCondition();
 
 		ConditionGroup rootGroup = new ConditionGroup();
 		rootGroup.getChildren().addAll(Arrays.asList(hpCondition, prayerCondition, skillLevelCondition, xpGainCondition,
-				itemCountCondition, groundItemCondition, zoneCondition, instanceCondition));
+				itemCountCondition, groundItemCondition, instanceCondition, itemPriceCondition,
+				inventoryValueCondition, bankValueCondition));
 
 		RuleDefinition enabledRule = new RuleDefinition();
 		enabledRule.setRootGroup(rootGroup);
@@ -71,8 +80,10 @@ public class RuntimeConditionRequirementsTest
 		assertTrue(requirements.getXpGainSkills().contains(Skill.STRENGTH));
 		assertTrue(requirements.getInventoryItems().contains("shark"));
 		assertTrue(requirements.getGroundItems().contains("rune arrow"));
-		assertTrue(requirements.tracksPlayerLocation());
 		assertTrue(requirements.tracksPlayerInstance());
+		assertTrue(requirements.getItemPrices().contains("abyssal whip"));
+		assertTrue(requirements.tracksInventoryValue());
+		assertTrue(requirements.tracksBankValue());
 		assertTrue(requirements.needsGameTick());
 	}
 }
