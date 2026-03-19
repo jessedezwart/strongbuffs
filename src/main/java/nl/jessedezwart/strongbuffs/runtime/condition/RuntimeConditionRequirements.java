@@ -11,8 +11,13 @@ import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
 /**
  * Immutable watchlist describing which runtime state slices currently matter.
  *
- * <p>The compiler derives this from the enabled rule set and passes it to the tracker so event
- * handlers only refresh state that some active rule can actually observe.</p>
+ * The compiler derives this from the enabled rule set and passes it to the
+ * tracker so event handlers only refresh state that some active rule can
+ * actually observe.
+ *
+ * This is done so that we can minimize the amount of state tracking and
+ * expensive game tick updates when they are not needed, for example when the
+ * player only has rules that check inventory conditions while they are outside.
  */
 public final class RuntimeConditionRequirements
 {
@@ -34,9 +39,9 @@ public final class RuntimeConditionRequirements
 	private final Set<String> groundItems;
 
 	private RuntimeConditionRequirements(boolean hitpoints, boolean prayerPoints, boolean specialAttack,
-		boolean runEnergy, boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance,
-		Set<Prayer> prayers, Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems,
-		Set<String> equippedItems, Set<String> groundItems)
+			boolean runEnergy, boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance,
+			Set<Prayer> prayers, Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems,
+			Set<String> equippedItems, Set<String> groundItems)
 	{
 		this.hitpoints = hitpoints;
 		this.prayerPoints = prayerPoints;
@@ -135,7 +140,8 @@ public final class RuntimeConditionRequirements
 	}
 
 	/**
-	 * Returns whether a periodic game tick is required in addition to direct event updates.
+	 * Returns whether a periodic game tick is required in addition to direct event
+	 * updates.
 	 */
 	public boolean needsGameTick()
 	{
@@ -273,12 +279,14 @@ public final class RuntimeConditionRequirements
 		public RuntimeConditionRequirements build()
 		{
 			return new RuntimeConditionRequirements(hitpoints, prayerPoints, specialAttack, runEnergy, poison,
-				slayerTask, playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
-				new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems), new LinkedHashSet<>(groundItems));
+					slayerTask, playerLocation, playerInstance, copyPrayers(), copyRealSkills(), copyXpGainSkills(),
+					new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems),
+					new LinkedHashSet<>(groundItems));
 		}
 
 		/**
-		 * Merges another requirement set into this builder when compiling multiple rules together.
+		 * Merges another requirement set into this builder when compiling multiple
+		 * rules together.
 		 */
 		public Builder merge(RuntimeConditionRequirements requirements)
 		{
@@ -362,7 +370,8 @@ public final class RuntimeConditionRequirements
 
 		private static void addName(Set<String> target, String value)
 		{
-			// Item tracking uses normalized names so editor input and runtime lookups can match even
+			// Item tracking uses normalized names so editor input and runtime lookups can
+			// match even
 			// if casing or whitespace differs.
 			String normalized = InventoryRuntimeState.normalizeName(value);
 
