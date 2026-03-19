@@ -20,13 +20,6 @@ import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 @Slf4j
 @PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =
 { "overlay", "buffs", "rule", "timers", "alerts", "weakauras" })
-/**
- * RuneLite entry point that wires the sidebar panel and runtime rule pipeline together.
- *
- * <p>The plugin itself deliberately stays thin. Persistence, editing, tracking, evaluation, and
- * rendering all live behind dedicated services so startup and shutdown remain easy to reason
- * about.</p>
- */
 public class StrongBuffsPlugin extends Plugin
 {
 	@Inject

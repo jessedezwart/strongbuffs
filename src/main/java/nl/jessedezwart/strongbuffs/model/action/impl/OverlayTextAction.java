@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.util.ColorUtil;
+import nl.jessedezwart.strongbuffs.model.util.ColorUtil;
 
 /**
  * Persisted action definition for showing text in the shared runtime overlay.

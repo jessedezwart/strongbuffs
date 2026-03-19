@@ -3,7 +3,7 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.ConditionMatcherUtil;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public class SpecialAttackConditionRuntimeHandler implements ConditionRuntimeAdapter<SpecialAttackCondition>
@@ -17,7 +17,7 @@ public class SpecialAttackConditionRuntimeHandler implements ConditionRuntimeAda
 	@Override
 	public boolean matches(SpecialAttackCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionMatcherUtils.matches(condition, runtimeState.getVars().getSpecialAttackPercent());
+		return ConditionMatcherUtil.matches(condition, runtimeState.getVars().getSpecialAttackPercent());
 	}
 
 	@Override

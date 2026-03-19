@@ -4,8 +4,8 @@ import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SkillLevelCondition;
 import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.FormatterUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.ConditionMatcherUtil;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.FormatterUtil;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeAdapter<SkillLevelCondition>
@@ -26,7 +26,7 @@ public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeAdapte
 			return false;
 		}
 
-		return ConditionMatcherUtils.matches(condition, runtimeState.getSkills().getRealSkillLevel(skill));
+		return ConditionMatcherUtil.matches(condition, runtimeState.getSkills().getRealSkillLevel(skill));
 	}
 
 	@Override
@@ -45,6 +45,6 @@ public class SkillLevelConditionRuntimeHandler implements ConditionRuntimeAdapte
 			return null;
 		}
 
-		return FormatterUtils.format(skill) + " " + runtimeState.getSkills().getRealSkillLevel(skill);
+		return FormatterUtil.format(skill) + " " + runtimeState.getSkills().getRealSkillLevel(skill);
 	}
 }

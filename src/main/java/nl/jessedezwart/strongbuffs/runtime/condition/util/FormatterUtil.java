@@ -1,10 +1,10 @@
-package nl.jessedezwart.strongbuffs.runtime.condition.utils;
+package nl.jessedezwart.strongbuffs.runtime.condition.util;
 
 import net.runelite.api.Skill;
 
-public final class FormatterUtils
+public final class FormatterUtil
 {
-	private FormatterUtils()
+	private FormatterUtil()
 	{
 	}
 

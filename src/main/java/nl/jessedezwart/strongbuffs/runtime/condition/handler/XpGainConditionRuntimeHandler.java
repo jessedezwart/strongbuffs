@@ -4,7 +4,7 @@ import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.FormatterUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.FormatterUtil;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public class XpGainConditionRuntimeHandler implements ConditionRuntimeAdapter<XpGainCondition>
@@ -44,6 +44,6 @@ public class XpGainConditionRuntimeHandler implements ConditionRuntimeAdapter<Xp
 			return null;
 		}
 
-		return FormatterUtils.format(skill) + " " + (runtimeState.getSkills().hasXpGain(skill) ? "xp" : "idle");
+		return FormatterUtil.format(skill) + " " + (runtimeState.getSkills().hasXpGain(skill) ? "xp" : "idle");
 	}
 }

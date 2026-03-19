@@ -3,7 +3,7 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.ConditionMatcherUtil;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public class PrayerPointsConditionRuntimeHandler implements ConditionRuntimeAdapter<PrayerPointsCondition>
@@ -17,7 +17,7 @@ public class PrayerPointsConditionRuntimeHandler implements ConditionRuntimeAdap
 	@Override
 	public boolean matches(PrayerPointsCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionMatcherUtils.matches(condition, runtimeState.getSkills().getPrayerPoints());
+		return ConditionMatcherUtil.matches(condition, runtimeState.getSkills().getPrayerPoints());
 	}
 
 	@Override

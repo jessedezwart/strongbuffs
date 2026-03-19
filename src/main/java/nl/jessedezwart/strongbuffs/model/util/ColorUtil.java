@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.util;
+package nl.jessedezwart.strongbuffs.model.util;
 
 /**
  * Shared color validation utilities.

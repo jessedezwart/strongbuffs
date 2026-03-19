@@ -3,7 +3,7 @@ package nl.jessedezwart.strongbuffs.runtime.condition.handler;
 import nl.jessedezwart.strongbuffs.model.condition.impl.RunEnergyCondition;
 import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeAdapter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeStateWatchlist;
-import nl.jessedezwart.strongbuffs.runtime.condition.utils.ConditionMatcherUtils;
+import nl.jessedezwart.strongbuffs.runtime.condition.util.ConditionMatcherUtil;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 public class RunEnergyConditionRuntimeHandler implements ConditionRuntimeAdapter<RunEnergyCondition>
@@ -17,7 +17,7 @@ public class RunEnergyConditionRuntimeHandler implements ConditionRuntimeAdapter
 	@Override
 	public boolean matches(RunEnergyCondition condition, RuntimeState runtimeState)
 	{
-		return ConditionMatcherUtils.matches(condition, runtimeState.getLocation().getRunEnergyPercent());
+		return ConditionMatcherUtil.matches(condition, runtimeState.getLocation().getRunEnergyPercent());
 	}
 
 	@Override

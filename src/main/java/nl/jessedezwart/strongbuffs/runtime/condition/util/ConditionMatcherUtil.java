@@ -1,11 +1,11 @@
-package nl.jessedezwart.strongbuffs.runtime.condition.utils;
+package nl.jessedezwart.strongbuffs.runtime.condition.util;
 
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 
-public final class ConditionMatcherUtils
+public final class ConditionMatcherUtil
 {
-	private ConditionMatcherUtils()
+	private ConditionMatcherUtil()
 	{
 	}
 
