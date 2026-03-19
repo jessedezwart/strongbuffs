@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 
 /**
@@ -27,7 +27,7 @@ public class ActionEditorRegistry
 
 	public ActionEditorRegistry()
 	{
-		this(new DefaultDefinitionCatalog());
+		this(new DefinitionCatalog());
 	}
 
 	@Inject

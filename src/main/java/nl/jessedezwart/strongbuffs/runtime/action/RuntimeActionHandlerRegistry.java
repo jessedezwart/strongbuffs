@@ -5,9 +5,19 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
+import nl.jessedezwart.strongbuffs.runtime.action.effect.OverlayTextService;
+import nl.jessedezwart.strongbuffs.runtime.action.effect.ScreenFlashService;
+import nl.jessedezwart.strongbuffs.runtime.action.effect.SoundAlertService;
 import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
+/**
+ * Routes action lifecycle calls to the correct {@link RuntimeActionHandler} based on the
+ * concrete {@link ActionDefinition} type attached to a compiled rule.
+ *
+ * <p>All known handlers are registered at construction time. At runtime, the registry looks up the
+ * handler for a rule's action definition class and delegates the persistent/transient call to it.</p>
+ */
 @Singleton
 public class RuntimeActionHandlerRegistry
 {
@@ -15,12 +25,12 @@ public class RuntimeActionHandlerRegistry
 		new LinkedHashMap<>();
 
 	@Inject
-	public RuntimeActionHandlerRegistry(OverlayTextActionHandler overlayTextActionHandler,
-		ScreenFlashActionHandler screenFlashActionHandler, SoundAlertActionHandler soundAlertActionHandler)
+	public RuntimeActionHandlerRegistry(OverlayTextService overlayTextService,
+		ScreenFlashService screenFlashService, SoundAlertService soundAlertService)
 	{
-		register(overlayTextActionHandler);
-		register(screenFlashActionHandler);
-		register(soundAlertActionHandler);
+		register(overlayTextService);
+		register(screenFlashService);
+		register(soundAlertService);
 	}
 
 	public void startUp()

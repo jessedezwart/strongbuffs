@@ -17,7 +17,7 @@ public class DefinitionRegistryConsistencyTest
 		"src/main/java/nl/jessedezwart/strongbuffs/model/action/impl");
 	private static final Path CONDITION_IMPL_DIR = PROJECT_ROOT.resolve(
 		"src/main/java/nl/jessedezwart/strongbuffs/model/condition/impl");
-	private final DefinitionCatalog definitionCatalog = new DefaultDefinitionCatalog();
+	private final DefinitionCatalog definitionCatalog = new DefinitionCatalog();
 
 	@Test
 	public void actionImplsMatchDefinitionRegistry() throws IOException

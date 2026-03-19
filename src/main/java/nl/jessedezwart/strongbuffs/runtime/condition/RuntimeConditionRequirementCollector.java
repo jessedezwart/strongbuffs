@@ -4,8 +4,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 
 /**

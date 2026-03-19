@@ -3,40 +3,58 @@ package nl.jessedezwart.strongbuffs.model.condition;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.Definition;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 
 /**
  * Base type for persisted leaf conditions.
  *
- * <p>Condition definitions never read live RuneLite state directly. They only store user intent and
- * editor metadata so the runtime layer can evaluate them against cached state later.</p>
+ * Implementations describe config editor fields, validation, and copy behavior
+ * only. Runtime effects are delegated to handlers in
+ * {@code nl.jessedezwart.strongbuffs.runtime.condition}.
  */
-public abstract class ConditionDefinition implements ConditionNode
+public abstract class ConditionDefinition implements ConditionNode, Definition<ConditionDefinition>
 {
-	public abstract String getEditorLabel();
-
 	/**
 	 * Creates a detached copy for draft editing and persistence workflows.
 	 */
 	public abstract ConditionDefinition copy();
 
+	/**
+	 * @return String Description for this condition type, shown in the editor as a
+	 *         tooltip. By default, this returns the same value as
+	 *         {@link #getEditorLabel()}, but implementations can override this to
+	 *         provide more detailed descriptions if needed.
+	 */
+	@Override
 	public String getEditorDescription()
 	{
 		return getEditorLabel();
 	}
 
+	/**
+	 * @return List<EditorField> List of editor fields for this condition's config.
+	 *         By default, this returns an empty list, but implementations can
+	 *         override this to provide custom fields as needed.
+	 */
+	@Override
 	public List<EditorField> getEditorFields()
 	{
 		return Collections.emptyList();
 	}
 
+	/**
+	 * A no-op validate method. Implementations can override this to add validation
+	 * logic for their config fields.
+	 */
+	@Override
 	public void validate(Map<String, String> errors, String fieldPrefix)
 	{
 	}
 
 	/**
-	 * Shared utility for user-entered text fields that should reject blank values after trimming.
+	 * @param value String to check for null or blank
+	 * @return boolean true if the value is null or blank, false otherwise
 	 */
 	protected final boolean isBlank(String value)
 	{

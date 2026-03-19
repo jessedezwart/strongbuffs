@@ -3,42 +3,30 @@ package nl.jessedezwart.strongbuffs.model.action.impl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.util.ColorUtil;
 
-@Data
-@NoArgsConstructor
-// Don't include superclass fields in equals and hashCode, as they are not relevant for action equality
-@EqualsAndHashCode(callSuper = false)
 /**
  * Persisted action definition for showing text in the shared runtime overlay.
  */
-public class OverlayTextAction extends ActionDefinition
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class OverlayTextAction implements ActionDefinition
 {
+	private final transient String typeId = "overlay_text";
+	private final transient String editorLabel = "Overlay text";
+	private final transient String editorDescription = "Overlay text";
+
 	private String text;
 	private String colorHex = "#FFFFFF";
-	private boolean showValue = true;
-
-	@Override
-	public String getTypeId()
-	{
-		return "overlay_text";
-	}
-
-	@Override
-	public String getEditorLabel()
-	{
-		return "Overlay text";
-	}
-
-	@Override
-	public String getEditorDescription()
-	{
-		return "Overlay text";
-	}
+	private Boolean showValue = true;
 
 	@Override
 	public ActionDefinition copy()
@@ -56,7 +44,7 @@ public class OverlayTextAction extends ActionDefinition
 		return Arrays.asList(
 			EditorField.text("text", "Text", 14, this::getText, this::setText),
 			EditorField.color("colorHex", "Color", 8, this::getColorHex, this::setColorHex),
-			EditorField.checkbox("showValue", "Show live value", this::isShowValue, this::setShowValue));
+			EditorField.checkbox("showValue", "Show live value", this::getShowValue, this::setShowValue));
 	}
 
 	@Override
@@ -67,7 +55,7 @@ public class OverlayTextAction extends ActionDefinition
 			errors.put(fieldPrefix + ".text", "Text is required.");
 		}
 
-		if (!isValidColorHex(colorHex))
+		if (!ColorUtil.isValidColorHex(colorHex))
 		{
 			errors.put(fieldPrefix + ".color", "Color must be in #RRGGBB format.");
 		}

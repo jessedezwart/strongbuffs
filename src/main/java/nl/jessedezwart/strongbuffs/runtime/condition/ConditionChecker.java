@@ -2,9 +2,9 @@ package nl.jessedezwart.strongbuffs.runtime.condition;
 
 import javax.inject.Inject;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 /**

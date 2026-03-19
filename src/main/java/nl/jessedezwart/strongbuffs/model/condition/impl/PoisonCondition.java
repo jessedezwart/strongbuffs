@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

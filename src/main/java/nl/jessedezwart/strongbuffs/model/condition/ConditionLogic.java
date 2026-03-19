@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.model.condition.tree;
+package nl.jessedezwart.strongbuffs.model.condition;
 
 /**
  * Boolean operators used to combine child nodes inside a {@link ConditionGroup}.

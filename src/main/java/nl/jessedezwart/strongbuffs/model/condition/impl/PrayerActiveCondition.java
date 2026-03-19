@@ -6,9 +6,9 @@ import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.runelite.api.Prayer;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionEditorOptions;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -18,7 +18,7 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 public class PrayerActiveCondition extends ConditionDefinition
 {
 	private Prayer prayer = Prayer.THICK_SKIN;
-	private boolean active = true;
+	private Boolean active = true;
 
 	@Override
 	public String getEditorLabel()
@@ -47,7 +47,7 @@ public class PrayerActiveCondition extends ConditionDefinition
 		return Arrays.asList(
 			EditorField.choice("prayer", "Prayer", this::getPrayer, this::setPrayer, ConditionEditorOptions.getPrayers(),
 				PrayerActiveCondition::formatPrayer),
-			EditorField.checkbox("active", "Active", this::isActive, this::setActive));
+			EditorField.checkbox("active", "Active", this::getActive, this::setActive));
 	}
 
 	@Override

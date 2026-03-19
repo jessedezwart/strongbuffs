@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.runtime.action;
+package nl.jessedezwart.strongbuffs.runtime.action.effect;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,10 +15,22 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.audio.AudioPlayer;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
+import nl.jessedezwart.strongbuffs.runtime.action.RuntimeActionHandler;
+import nl.jessedezwart.strongbuffs.runtime.engine.CompiledRule;
+import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
+/**
+ * Synthesizes and plays short alert sounds on a dedicated background thread.
+ *
+ * <p>
+ * Sound presets ("ding", "warning", default) are built as in-memory WAV files
+ * from simple sine-wave tones and cached after first use. Playback is submitted
+ * to a single-threaded executor so it never blocks the client thread.
+ * </p>
+ */
 @Singleton
 @Slf4j
-public class SoundAlertController
+public class SoundAlertService implements RuntimeActionHandler<SoundAlertAction>
 {
 	private static final int SAMPLE_RATE = 22050;
 
@@ -27,18 +39,52 @@ public class SoundAlertController
 	private final Map<String, byte[]> cachedSounds = new LinkedHashMap<>();
 
 	@Inject
-	public SoundAlertController()
+	public SoundAlertService()
 	{
 	}
 
-	public void play(SoundAlertAction action)
+	@Override
+	public Class<SoundAlertAction> getActionType()
+	{
+		return SoundAlertAction.class;
+	}
+
+	@Override
+	public void activatePersistent(CompiledRule rule, SoundAlertAction action, RuntimeState runtimeState)
+	{
+		play(action);
+	}
+
+	@Override
+	public void updatePersistent(CompiledRule rule, SoundAlertAction action, RuntimeState runtimeState)
+	{
+	}
+
+	@Override
+	public void deactivatePersistent(CompiledRule rule, SoundAlertAction action)
+	{
+	}
+
+	@Override
+	public void fireTransient(CompiledRule rule, SoundAlertAction action, RuntimeState runtimeState)
+	{
+		play(action);
+	}
+
+	@Override
+	public void shutDown()
+	{
+		executorService.shutdownNow();
+	}
+
+	private void play(SoundAlertAction action)
 	{
 		if (action == null || action.getVolumePercent() <= 0)
 		{
 			return;
 		}
 
-		byte[] soundData = cachedSounds.computeIfAbsent(action.getSoundKey(), SoundAlertController::buildSound);
+		byte[] soundData = cachedSounds.computeIfAbsent(action.getSoundKey(), SoundAlertService::buildSound);
 		float gain = Math.max(0f, Math.min(1f, action.getVolumePercent() / 100f));
 
 		executorService.submit(() ->
@@ -49,14 +95,9 @@ public class SoundAlertController
 			}
 			catch (IOException | UnsupportedAudioFileException | LineUnavailableException ex)
 			{
-				log.debug("Failed to play StrongBuffs sound preset {}", action.getSoundKey(), ex);
+				log.error("Failed to play StrongBuffs sound preset {}", action.getSoundKey(), ex);
 			}
 		});
-	}
-
-	public void shutDown()
-	{
-		executorService.shutdownNow();
 	}
 
 	private static byte[] buildSound(String soundKey)

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -15,11 +15,11 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
  */
 public class PlayerInZoneCondition extends ConditionDefinition
 {
-	private int southWestX;
-	private int southWestY;
-	private int northEastX;
-	private int northEastY;
-	private int plane;
+	private Integer southWestX;
+	private Integer southWestY;
+	private Integer northEastX;
+	private Integer northEastY;
+	private Integer plane;
 
 	@Override
 	public String getEditorLabel()

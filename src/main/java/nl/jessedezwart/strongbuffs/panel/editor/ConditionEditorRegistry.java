@@ -12,10 +12,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import net.runelite.client.ui.ColorScheme;
 
@@ -34,7 +34,7 @@ public class ConditionEditorRegistry
 
 	public ConditionEditorRegistry()
 	{
-		this(new DefaultDefinitionCatalog());
+		this(new DefinitionCatalog());
 	}
 
 	@Inject

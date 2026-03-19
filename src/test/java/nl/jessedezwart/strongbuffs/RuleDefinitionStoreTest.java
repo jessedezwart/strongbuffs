@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
@@ -20,14 +20,13 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
-import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import org.junit.Test;
 
 public class RuleDefinitionStoreTest
 {
 	private final RuleDefinitionStore store = new RuleDefinitionStore(null);
-	private final DefinitionCatalog definitionCatalog = new DefaultDefinitionCatalog();
+	private final DefinitionCatalog definitionCatalog = new DefinitionCatalog();
 
 	@Test
 	public void serializeAndDeserializeRoundTripsTypedDefinitions()

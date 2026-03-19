@@ -13,8 +13,8 @@ import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import org.junit.Test;
 

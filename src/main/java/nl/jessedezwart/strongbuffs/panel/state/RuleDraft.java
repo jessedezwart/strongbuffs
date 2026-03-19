@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 
 /**
  * UI-only mutable copy of a rule definition used to isolate Swing edits from

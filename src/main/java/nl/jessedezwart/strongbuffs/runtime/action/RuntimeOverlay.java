@@ -16,6 +16,20 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
+/**
+ * RuneLite overlay that renders all active Strong Buffs visual effects.
+ *
+ * <p>Two independent visual layers are composited each frame:
+ * <ul>
+ *   <li><b>Flash entries</b> — full-screen semi-transparent colour tints.</li>
+ *   <li><b>Text entries</b> — labelled badges drawn in the top-left corner.</li>
+ * </ul>
+ *
+ * <p>Both entry lists are set atomically by their respective services
+ * ({@link nl.jessedezwart.strongbuffs.runtime.action.effect.OverlayTextService},
+ * {@link nl.jessedezwart.strongbuffs.runtime.action.effect.ScreenFlashService}) and read on the render
+ * thread, so fields are {@code volatile} and wrapped in unmodifiable lists.</p>
+ */
 @Singleton
 public class RuntimeOverlay extends Overlay
 {

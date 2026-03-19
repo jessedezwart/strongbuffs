@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.model.condition.tree;
+package nl.jessedezwart.strongbuffs.model.condition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +17,4 @@ public class ConditionGroup implements ConditionNode
 {
 	private ConditionLogic logic = ConditionLogic.AND;
 	private List<ConditionNode> children = new ArrayList<>();
-
-	@Override
-	public String getTypeId()
-	{
-		return "group";
-	}
 }

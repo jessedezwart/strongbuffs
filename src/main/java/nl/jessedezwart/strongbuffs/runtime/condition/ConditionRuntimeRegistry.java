@@ -153,7 +153,7 @@ public class ConditionRuntimeRegistry
 
 	private boolean matchesPrayerActive(PrayerActiveCondition condition, RuntimeState state)
 	{
-		return condition.isActive() == state.getVars().isPrayerActive(condition.getPrayer());
+		return condition.getActive() == state.getVars().isPrayerActive(condition.getPrayer());
 	}
 
 	private String formatPrayerState(PrayerActiveCondition condition, RuntimeState state)

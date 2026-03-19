@@ -11,9 +11,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import net.runelite.client.ui.ColorScheme;
 

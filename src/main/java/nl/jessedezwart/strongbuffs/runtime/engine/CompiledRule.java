@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import lombok.Getter;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;

@@ -1,9 +1,6 @@
 package nl.jessedezwart.strongbuffs.model.condition.impl;
 
-import lombok.EqualsAndHashCode;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-
-@EqualsAndHashCode(callSuper = false)
 /**
  * Persisted condition definition that checks whether the local player is inside an instance.
  */

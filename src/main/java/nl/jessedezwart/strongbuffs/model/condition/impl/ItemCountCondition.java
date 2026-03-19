@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

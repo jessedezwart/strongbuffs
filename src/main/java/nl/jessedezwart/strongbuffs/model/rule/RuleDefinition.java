@@ -3,14 +3,12 @@ package nl.jessedezwart.strongbuffs.model.rule;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 
 /**
  * Persisted user-defined rule configuration.
  *
- * <p>This is the handoff object between the editor, persistence store, and runtime compiler. The
- * runtime never mutates these definitions directly; it compiles them into dedicated runtime
- * structures instead.</p>
+ * This is the handoff object between the editor, persistence store, and runtime compiler.
  */
 @Data
 @NoArgsConstructor

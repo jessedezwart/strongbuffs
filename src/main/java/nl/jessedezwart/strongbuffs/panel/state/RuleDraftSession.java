@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.UUID;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 
 /**
  * Holds the currently selected draft rule and selection state for the sidebar.

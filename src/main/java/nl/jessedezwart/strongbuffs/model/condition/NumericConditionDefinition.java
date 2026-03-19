@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -18,7 +18,7 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 public abstract class NumericConditionDefinition extends ConditionDefinition
 {
 	private ComparisonOperator operator;
-	private int threshold;
+	private Integer threshold;
 
 	protected NumericConditionDefinition(ComparisonOperator operator)
 	{

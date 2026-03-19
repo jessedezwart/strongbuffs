@@ -13,7 +13,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import net.runelite.client.ui.ColorScheme;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 
 /**
  * Converts declarative {@link EditorField} descriptors into bound Swing components.

@@ -6,10 +6,10 @@ import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.runelite.api.Skill;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionEditorOptions;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

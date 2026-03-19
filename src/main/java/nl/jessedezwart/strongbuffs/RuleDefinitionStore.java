@@ -19,9 +19,9 @@ import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
-import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 
@@ -44,7 +44,7 @@ public class RuleDefinitionStore
 
 	public RuleDefinitionStore(ConfigManager configManager)
 	{
-		this(configManager, new DefaultDefinitionCatalog());
+		this(configManager, new DefinitionCatalog());
 	}
 
 	@Inject
@@ -213,6 +213,7 @@ public class RuleDefinitionStore
 			implements JsonSerializer<ConditionNode>, JsonDeserializer<ConditionNode>
 	{
 		private static final String TYPE_FIELD = "type";
+		private static final String GROUP_TYPE = "group";
 		private final DefinitionCatalog definitionCatalog;
 
 		private ConditionNodeAdapter(DefinitionCatalog definitionCatalog)
@@ -224,9 +225,17 @@ public class RuleDefinitionStore
 		public JsonElement serialize(ConditionNode src, Type typeOfSrc, JsonSerializationContext context)
 		{
 			JsonObject jsonObject = context.serialize(src, src.getClass()).getAsJsonObject();
-			String type = src.getTypeId();
+			String type;
 
-			if (type == null)
+			if (src instanceof ConditionGroup)
+			{
+				type = GROUP_TYPE;
+			}
+			else if (src instanceof ConditionDefinition)
+			{
+				type = ((ConditionDefinition) src).getTypeId();
+			}
+			else
 			{
 				throw new JsonParseException("Unsupported condition node type: " + src.getClass().getName());
 			}
@@ -324,9 +333,7 @@ public class RuleDefinitionStore
 			return null;
 		}
 
-		ConditionGroup group = new ConditionGroup();
-
-		if (group.getTypeId().equals(type))
+		if (ConditionNodeAdapter.GROUP_TYPE.equals(type))
 		{
 			return ConditionGroup.class;
 		}

@@ -1,8 +1,5 @@
 package nl.jessedezwart.strongbuffs.model.condition;
 
-/**
- * Supported numeric comparisons for threshold-based conditions.
- */
 public enum ComparisonOperator
 {
 	LESS_THAN("<"),

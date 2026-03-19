@@ -1,4 +1,4 @@
-package nl.jessedezwart.strongbuffs.model.editor;
+package nl.jessedezwart.strongbuffs.model;
 
 import java.util.Collections;
 import java.util.List;
