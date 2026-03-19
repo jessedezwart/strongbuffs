@@ -13,6 +13,13 @@ import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeStateListener;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
+/**
+ * Applies activation mode and cooldown semantics to compiled rule evaluation.
+ *
+ * <p>The tracker notifies this engine when cached state changes. The engine then decides whether a
+ * rule should activate persistently, update an active action, fire a one-shot transition, or clear
+ * itself.</p>
+ */
 @Singleton
 public class RuleEngine implements RuntimeStateListener
 {
@@ -31,12 +38,18 @@ public class RuleEngine implements RuntimeStateListener
 		this.actionDispatcher = actionDispatcher;
 	}
 
+	/**
+	 * Replaces the active compiled rule set and clears runtime state derived from the old one.
+	 */
 	public void setCompiledRuleSet(CompiledRuleSet compiledRuleSet)
 	{
 		this.compiledRuleSet = compiledRuleSet == null ? CompiledRuleSet.empty() : compiledRuleSet;
 		reset();
 	}
 
+	/**
+	 * Clears per-rule runtime state and deactivates all active actions.
+	 */
 	public void reset()
 	{
 		ruleStates.clear();
@@ -60,6 +73,8 @@ public class RuleEngine implements RuntimeStateListener
 
 		if (!initialized || triggers.contains(RuntimeTrigger.FULL_REFRESH))
 		{
+			// A baseline pass establishes previous-match state before incremental enter/exit logic can
+			// behave correctly.
 			syncBaseline(runtimeState);
 			return;
 		}
@@ -74,6 +89,8 @@ public class RuleEngine implements RuntimeStateListener
 
 	private void syncBaseline(RuntimeState runtimeState)
 	{
+		// Rebuild active persistent actions from scratch so the engine state always mirrors the latest
+		// runtime snapshot after login transitions or watchlist changes.
 		actionDispatcher.clearAll();
 		ruleStates.clear();
 

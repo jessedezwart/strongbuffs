@@ -10,6 +10,12 @@ import nl.jessedezwart.strongbuffs.runtime.condition.ConditionRuntimeRegistry;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirementCollector;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 
+/**
+ * Compiles persisted rules into runtime-ready structures.
+ *
+ * <p>Compilation precomputes the requirement watchlist and trigger plan for each enabled rule so
+ * the engine can react incrementally instead of reevaluating everything on every event.</p>
+ */
 @Singleton
 public class RuleCompiler
 {
@@ -28,6 +34,9 @@ public class RuleCompiler
 		this.runtimeTriggerPlanner = runtimeTriggerPlanner;
 	}
 
+	/**
+	 * Compiles the enabled persisted rules into a runtime rule set and trigger index.
+	 */
 	public CompiledRuleSet compile(List<RuleDefinition> rules)
 	{
 		List<CompiledRule> compiledRules = new ArrayList<>();

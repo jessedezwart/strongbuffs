@@ -16,7 +16,7 @@ import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 
 /**
- * Builds action editor metadata and input components from action model field definitions.
+ * Builds action editor metadata and Swing editors from persisted action definitions.
  */
 @Singleton
 public class ActionEditorRegistry
@@ -72,6 +72,9 @@ public class ActionEditorRegistry
 		return actionDefinition.getEditorDescription();
 	}
 
+	/**
+	 * Creates an editor component bound directly to the provided draft action instance.
+	 */
 	public JComponent createEditor(ActionDefinition actionDefinition, Runnable onChange)
 	{
 		JPanel panel = ActionEditorSupport.createVerticalPanel();

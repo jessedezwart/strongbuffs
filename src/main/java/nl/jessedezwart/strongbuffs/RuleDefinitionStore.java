@@ -25,6 +25,12 @@ import nl.jessedezwart.strongbuffs.model.registry.DefaultDefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 
+/**
+ * Persists rule definitions as versioned JSON in RuneLite config storage.
+ *
+ * <p>The store serializes persisted model types only. Live runtime objects are rebuilt from those
+ * definitions at startup so saved data stays stable, diffable, and migration-friendly.</p>
+ */
 @Slf4j
 @Singleton
 public class RuleDefinitionStore
@@ -58,6 +64,9 @@ public class RuleDefinitionStore
 		return deserialize(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES));
 	}
 
+	/**
+	 * Replaces the stored rule list with the provided persisted definitions.
+	 */
 	public void save(List<RuleDefinition> rules)
 	{
 		configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES, serialize(rules));
@@ -143,6 +152,8 @@ public class RuleDefinitionStore
 
 			try
 			{
+				// Invalid or unknown rules are dropped wholesale so the runtime never executes a
+				// partially recovered rule with ambiguous semantics.
 				RuleDefinition rule = gson.fromJson(jsonObject, RuleDefinition.class);
 				RuleDefinition migratedRule = migrate(rule);
 
@@ -179,6 +190,8 @@ public class RuleDefinitionStore
 			rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
 		}
 
+		// Fail closed when required structural pieces are missing. The editor can recreate a rule
+		// safely, but the runtime cannot infer intent from partial persisted data.
 		if (rule.getRootGroup() == null || rule.getAction() == null)
 		{
 			log.warn("Ignoring rule {} because required fields were missing", rule.getId());
@@ -234,6 +247,8 @@ public class RuleDefinitionStore
 				throw new JsonParseException("Unsupported condition node type: " + type);
 			}
 
+			// The synthetic type discriminator is used only for adapter dispatch and should not leak
+			// into the target persisted model object.
 			JsonObject payload = jsonObject.deepCopy();
 			payload.remove(TYPE_FIELD);
 			return context.deserialize(payload, targetClass);

@@ -16,6 +16,9 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import net.runelite.client.ui.ColorScheme;
 
+/**
+ * View component for one leaf condition row inside a condition group.
+ */
 public class ConditionRowPanel extends JPanel
 {
 	private final ConditionDefinition condition;

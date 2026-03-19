@@ -16,6 +16,9 @@ import javax.swing.JPanel;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import net.runelite.client.ui.ColorScheme;
 
+/**
+ * Scrollable list of visible rules shown at the top of the sidebar.
+ */
 public class RuleListPanel extends JPanel
 {
 	private final DefaultListModel<RuleDefinition> listModel = new DefaultListModel<>();
@@ -83,6 +86,9 @@ public class RuleListPanel extends JPanel
 		add(ruleSelector, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Refreshes the list contents and selection from controller state.
+	 */
 	public void refresh(List<RuleDefinition> rules, String selectedRuleId)
 	{
 		suppressSelectionEvents = true;

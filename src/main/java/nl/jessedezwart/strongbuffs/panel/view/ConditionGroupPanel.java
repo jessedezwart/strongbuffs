@@ -17,6 +17,9 @@ import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import net.runelite.client.ui.ColorScheme;
 
+/**
+ * Recursive Swing view for one condition-group branch and its children.
+ */
 public class ConditionGroupPanel extends JPanel
 {
 	private final ConditionGroup group;

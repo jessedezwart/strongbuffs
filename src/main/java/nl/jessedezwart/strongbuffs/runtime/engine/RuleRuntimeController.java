@@ -7,6 +7,13 @@ import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.action.ActionDispatcher;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeConditionTracker;
 
+/**
+ * Top-level coordinator for the runtime rule pipeline.
+ *
+ * <p>This class owns the handshake between compiled rules, runtime tracking requirements, the rule
+ * engine, and action lifecycle. The panel repository publishes new persisted rules here after each
+ * save.</p>
+ */
 @Singleton
 public class RuleRuntimeController
 {
@@ -28,6 +35,9 @@ public class RuleRuntimeController
 		this.actionDispatcher = actionDispatcher;
 	}
 
+	/**
+	 * Starts runtime tracking and action infrastructure with the current compiled rules.
+	 */
 	public void startUp()
 	{
 		if (started)
@@ -43,6 +53,9 @@ public class RuleRuntimeController
 		runtimeConditionTracker.startUp();
 	}
 
+	/**
+	 * Stops runtime tracking and clears any active actions.
+	 */
 	public void shutDown()
 	{
 		if (!started)
@@ -56,6 +69,9 @@ public class RuleRuntimeController
 		started = false;
 	}
 
+	/**
+	 * Recompiles the provided persisted rules and republishes the resulting runtime requirements.
+	 */
 	public void setRules(List<RuleDefinition> rules)
 	{
 		compiledRuleSet = ruleCompiler.compile(rules);

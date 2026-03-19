@@ -10,6 +10,12 @@ import java.util.Map;
 import java.util.Set;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
+/**
+ * Index from runtime triggers to the compiled rules affected by those triggers.
+ *
+ * <p>This is the key optimization that lets the engine reevaluate only impacted rules on ordinary
+ * events while still falling back to full passes for refresh and clear boundaries.</p>
+ */
 public class RuleTriggerIndex
 {
 	private static final RuleTriggerIndex EMPTY = new RuleTriggerIndex(Collections.emptyList(),
@@ -34,6 +40,9 @@ public class RuleTriggerIndex
 		return EMPTY;
 	}
 
+	/**
+	 * Builds an index from each trigger to the rules that depend on it.
+	 */
 	public static RuleTriggerIndex fromRules(List<CompiledRule> rules)
 	{
 		Map<RuntimeTrigger, List<CompiledRule>> indexed = new EnumMap<>(RuntimeTrigger.class);
@@ -49,6 +58,9 @@ public class RuleTriggerIndex
 		return new RuleTriggerIndex(rules, indexed);
 	}
 
+	/**
+	 * Returns the unique compiled rules affected by the provided triggers.
+	 */
 	public Collection<CompiledRule> getRulesForTriggers(Set<RuntimeTrigger> triggers)
 	{
 		if (triggers == null || triggers.isEmpty())

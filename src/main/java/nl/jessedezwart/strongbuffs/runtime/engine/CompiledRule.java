@@ -10,6 +10,12 @@ import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
+/**
+ * Immutable runtime representation of one persisted rule.
+ *
+ * <p>Compiled rules normalize defaults and carry the precomputed requirement and trigger metadata
+ * the engine needs for fast incremental evaluation.</p>
+ */
 @Getter
 public class CompiledRule
 {

@@ -8,9 +8,18 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
 
+/**
+ * Validates one rule draft before it can be saved.
+ *
+ * <p>Validation stays in the panel state layer rather than the view so save logic, inline error
+ * display, and unsaved-change flows all share the same rules.</p>
+ */
 @Singleton
 public class RuleDraftValidator
 {
+	/**
+	 * Returns field-keyed validation errors that the panel can map back onto concrete widgets.
+	 */
 	public RuleValidationResult validate(RuleDraft draft)
 	{
 		if (draft == null)

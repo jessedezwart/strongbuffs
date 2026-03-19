@@ -14,6 +14,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted action definition for playing one of the built-in alert sounds.
+ */
 public class SoundAlertAction extends ActionDefinition
 {
 	private static final Map<String, String> SOUND_LABELS_BY_KEY = createSoundLabelsByKey();

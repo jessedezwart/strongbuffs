@@ -7,6 +7,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.Getter;
 
+/**
+ * Declarative description of one editable field in the Swing rule editor.
+ *
+ * <p>Persisted definitions emit these descriptors so the panel can stay generic instead of
+ * hardcoding a custom form for every action and condition implementation.</p>
+ */
 @Getter
 public abstract class EditorField
 {
@@ -64,6 +70,9 @@ public abstract class EditorField
 	}
 
 	@Getter
+	/**
+	 * Text-based editor field that binds a document back to a persisted string property.
+	 */
 	public static final class TextEditorField extends EditorField
 	{
 		private final TextFieldKind kind;
@@ -83,6 +92,9 @@ public abstract class EditorField
 	}
 
 	@Getter
+	/**
+	 * Checkbox field for persisted boolean properties.
+	 */
 	public static final class BooleanEditorField extends EditorField
 	{
 		private final Supplier<Boolean> getter;
@@ -97,6 +109,9 @@ public abstract class EditorField
 	}
 
 	@Getter
+	/**
+	 * Slider field for bounded integer values where immediate visual feedback is useful.
+	 */
 	public static final class IntegerSliderEditorField extends EditorField
 	{
 		private final Supplier<Integer> getter;
@@ -122,6 +137,9 @@ public abstract class EditorField
 	}
 
 	@Getter
+	/**
+	 * Spinner field for bounded integer values that are better edited precisely.
+	 */
 	public static final class IntegerSpinnerEditorField extends EditorField
 	{
 		private final Supplier<Integer> getter;
@@ -145,6 +163,9 @@ public abstract class EditorField
 	}
 
 	@Getter
+	/**
+	 * Choice field backed by a fixed option list and labeler.
+	 */
 	public static final class ChoiceEditorField<T> extends EditorField
 	{
 		private final Supplier<T> getter;

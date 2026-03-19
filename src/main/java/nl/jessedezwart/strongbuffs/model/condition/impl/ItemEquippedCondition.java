@@ -10,6 +10,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition that checks whether a named item is equipped.
+ */
 public class ItemEquippedCondition extends ConditionDefinition
 {
 	private String itemName = "";

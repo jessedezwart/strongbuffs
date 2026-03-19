@@ -20,6 +20,13 @@ import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 @Slf4j
 @PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =
 { "overlay", "buffs", "rule", "timers", "alerts", "weakauras" })
+/**
+ * RuneLite entry point that wires the sidebar panel and runtime rule pipeline together.
+ *
+ * <p>The plugin itself deliberately stays thin. Persistence, editing, tracking, evaluation, and
+ * rendering all live behind dedicated services so startup and shutdown remain easy to reason
+ * about.</p>
+ */
 public class StrongBuffsPlugin extends Plugin
 {
 	@Inject
@@ -36,6 +43,8 @@ public class StrongBuffsPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		// Reload persisted rules before runtime startup so the tracker and engine begin with the
+		// same rule set the panel shows to the user.
 		strongBuffsPanel.reload();
 		ruleRuntimeController.startUp();
 		SwingUtilities.updateComponentTreeUI(strongBuffsPanel.getWrappedPanel());
@@ -65,6 +74,9 @@ public class StrongBuffsPlugin extends Plugin
 		return configManager.getConfig(StrongBuffsConfig.class);
 	}
 
+	/**
+	 * Builds a small toolbar icon without needing a bundled image asset.
+	 */
 	private static BufferedImage createNavigationIcon()
 	{
 		BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);

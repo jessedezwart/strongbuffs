@@ -6,6 +6,9 @@ import java.util.Map;
 
 /**
  * Immutable validation result keyed by logical form field identifiers.
+ *
+ * <p>The view layer uses these stable keys to decide which visible error label should display each
+ * validation message.</p>
  */
 public final class RuleValidationResult
 {

@@ -28,6 +28,13 @@ import nl.jessedezwart.strongbuffs.panel.state.RuleDraft;
 import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
 import nl.jessedezwart.strongbuffs.panel.state.RuleValidationResult;
 
+/**
+ * Detail editor for the currently selected rule draft.
+ *
+ * <p>The panel renders a snapshot of the current draft and pushes user edits back through the
+ * shared draft object. Save and cancel actions still go through the controller so persistence and
+ * validation rules remain centralized.</p>
+ */
 public class RuleEditPanel extends JPanel
 {
 	private final RulePanelController controller;
@@ -58,6 +65,9 @@ public class RuleEditPanel extends JPanel
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 	}
 
+	/**
+	 * Rebuilds the visible editor from the latest draft snapshot.
+	 */
 	public void refresh(RuleDraft draft, RuleValidationResult validationResult)
 	{
 		this.draft = draft;
@@ -96,6 +106,9 @@ public class RuleEditPanel extends JPanel
 		repaint();
 	}
 
+	/**
+	 * Applies validation messages onto the already-rendered widgets without rebuilding the form.
+	 */
 	public void applyValidation(RuleValidationResult validationResult)
 	{
 		this.validationResult = validationResult == null ? RuleValidationResult.valid() : validationResult;

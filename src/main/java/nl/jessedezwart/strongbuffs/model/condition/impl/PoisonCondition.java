@@ -10,6 +10,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition for the player's poison or venom state.
+ */
 public class PoisonCondition extends ConditionDefinition
 {
 	private PoisonType poisonType = PoisonType.POISON_OR_VENOM;

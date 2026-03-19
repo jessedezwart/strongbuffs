@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * A persisted AND/OR branch containing nested groups and condition leaves.
+ * Persisted branch node for nested AND/OR condition logic.
+ *
+ * <p>Groups make the rule tree recursive while keeping individual condition definitions focused on
+ * one check each.</p>
  */
 @Data
 @NoArgsConstructor

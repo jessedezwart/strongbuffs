@@ -2,6 +2,12 @@ package nl.jessedezwart.strongbuffs.panel.state;
 
 import javax.inject.Singleton;
 
+/**
+ * Defers navigation-style actions until the user resolves unsaved changes.
+ *
+ * <p>The controller uses this guard so selection, creation, duplication, and deletion all share
+ * the same save, discard, or cancel behavior.</p>
+ */
 @Singleton
 public class UnsavedChangesGuard
 {

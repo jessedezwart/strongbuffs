@@ -10,6 +10,12 @@ import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 
+/**
+ * Holds the currently selected draft rule and selection state for the sidebar.
+ *
+ * <p>The draft is intentionally separate from persisted rules so Swing components can mutate fields
+ * freely without affecting saved data or runtime behavior until the user saves.</p>
+ */
 @Singleton
 public class RuleDraftSession
 {
@@ -32,12 +38,18 @@ public class RuleDraftSession
 		selectedRuleId = null;
 	}
 
+	/**
+	 * Selects an existing persisted rule and clones it into an editable draft.
+	 */
 	public void select(RuleDefinition ruleDefinition)
 	{
 		selectedRuleId = ruleDefinition == null ? null : ruleDefinition.getId();
 		draft = ruleDefinition == null ? null : RuleDraft.fromRuleDefinition(ruleDefinition);
 	}
 
+	/**
+	 * Creates a new draft with safe defaults that are valid to render immediately.
+	 */
 	public void createNew()
 	{
 		RuleDraft newDraft = new RuleDraft();
@@ -49,6 +61,9 @@ public class RuleDraftSession
 		selectedRuleId = newDraft.getId();
 	}
 
+	/**
+	 * Duplicates the provided rule into a new unsaved draft with a fresh id.
+	 */
 	public void duplicate(RuleDefinition source)
 	{
 		if (source == null)
@@ -88,6 +103,8 @@ public class RuleDraftSession
 			return Collections.unmodifiableList(visible);
 		}
 
+		// The list view shows draft edits immediately, even before persistence, so selection and
+		// unsaved-change prompts always reflect what the user currently sees.
 		RuleDefinition draftDefinition = draft.toRuleDefinition();
 		int existingIndex = indexOf(visible, draftDefinition.getId());
 

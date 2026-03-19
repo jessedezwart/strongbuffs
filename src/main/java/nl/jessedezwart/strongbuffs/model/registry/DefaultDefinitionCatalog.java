@@ -28,6 +28,12 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.SlayerTaskCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 
+/**
+ * Default whitelist-backed implementation of {@link DefinitionCatalog}.
+ *
+ * <p>Each registration keeps the persisted class, editor metadata instance, and creation factory in
+ * one place so editor creation and Gson polymorphism cannot drift apart.</p>
+ */
 @Singleton
 public class DefaultDefinitionCatalog implements DefinitionCatalog
 {

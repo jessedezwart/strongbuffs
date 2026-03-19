@@ -10,6 +10,13 @@ import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 
+/**
+ * In-memory repository for persisted rules plus runtime synchronization.
+ *
+ * <p>The panel talks to this repository instead of touching the store or runtime controller
+ * directly. Saving and deleting rules therefore updates persistence and the live compiled rule set
+ * together.</p>
+ */
 @Singleton
 public class RuleRepository
 {
@@ -29,6 +36,9 @@ public class RuleRepository
 		this.ruleRuntimeController = ruleRuntimeController;
 	}
 
+	/**
+	 * Reloads persisted rules from config storage and republishes them to the runtime layer.
+	 */
 	public void reload()
 	{
 		persistedRules.clear();
@@ -59,6 +69,9 @@ public class RuleRepository
 		return null;
 	}
 
+	/**
+	 * Saves or replaces one rule, then synchronizes the compiled runtime rule set.
+	 */
 	public void saveRule(RuleDefinition ruleDefinition)
 	{
 		if (ruleDefinition == null)
@@ -101,6 +114,7 @@ public class RuleRepository
 
 	private void synchronizeRuntime()
 	{
+		// The repository is the single bridge from persisted edits to the live runtime pipeline.
 		if (ruleRuntimeController != null)
 		{
 			ruleRuntimeController.setRules(new ArrayList<>(persistedRules));

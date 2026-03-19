@@ -31,6 +31,13 @@ import nl.jessedezwart.strongbuffs.runtime.tracker.updater.LocationStateUpdater;
 import nl.jessedezwart.strongbuffs.runtime.tracker.updater.SkillStateUpdater;
 import nl.jessedezwart.strongbuffs.runtime.tracker.updater.VarStateUpdater;
 
+/**
+ * Event-driven tracker that maintains the cached runtime state used for rule evaluation.
+ *
+ * <p>The tracker owns RuneLite API reads and client-thread coordination. It refreshes only the
+ * state slices requested by the current compiled rule set and notifies listeners with coarse
+ * runtime triggers describing what changed.</p>
+ */
 @Singleton
 @Slf4j
 public class RuntimeConditionTracker
@@ -69,6 +76,9 @@ public class RuntimeConditionTracker
 		this.locationStateUpdater = locationStateUpdater;
 	}
 
+	/**
+	 * Starts subscribing to RuneLite events and performs an initial tracked-state refresh.
+	 */
 	public void startUp()
 	{
 		if (started)
@@ -81,6 +91,9 @@ public class RuntimeConditionTracker
 		refreshTrackedStateAsync();
 	}
 
+	/**
+	 * Stops event subscriptions, clears cached state, and notifies listeners to reset.
+	 */
 	public void shutDown()
 	{
 		if (!started)
@@ -94,11 +107,17 @@ public class RuntimeConditionTracker
 		notifyListeners(EnumSet.of(RuntimeTrigger.CLEAR));
 	}
 
+	/**
+	 * Recomputes requirements from persisted rules and republishes them to the tracker.
+	 */
 	public void setRules(List<RuleDefinition> rules)
 	{
 		setRequirements(requirementCollector.fromRules(rules));
 	}
 
+	/**
+	 * Replaces the active watchlist and refreshes cached state to match it.
+	 */
 	public void setRequirements(RuntimeConditionRequirements requirements)
 	{
 		this.requirements = requirements == null ? RuntimeConditionRequirements.empty() : requirements;

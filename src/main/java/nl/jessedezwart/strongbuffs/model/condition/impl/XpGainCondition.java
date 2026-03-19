@@ -12,6 +12,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition that matches when the selected skill gained xp this tick.
+ */
 public class XpGainCondition extends ConditionDefinition
 {
 	private Skill skill = Skill.ATTACK;

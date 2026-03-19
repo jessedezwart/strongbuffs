@@ -9,6 +9,12 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Base class for conditions that compare one runtime number against a threshold.
+ *
+ * <p>This keeps the common editor rendering, validation, and copy logic in one place while each
+ * concrete condition supplies its own label, unit, and numeric bounds.</p>
+ */
 public abstract class NumericConditionDefinition extends ConditionDefinition
 {
 	private ComparisonOperator operator;
@@ -33,6 +39,7 @@ public abstract class NumericConditionDefinition extends ConditionDefinition
 	public NumericConditionDefinition copy()
 	{
 		NumericConditionDefinition copy = createCopy();
+		// Numeric subclasses only need to produce the correct concrete type.
 		copyTo(copy);
 		return copy;
 	}

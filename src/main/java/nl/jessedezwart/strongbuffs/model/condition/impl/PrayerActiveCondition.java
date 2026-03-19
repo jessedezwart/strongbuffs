@@ -12,6 +12,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition that checks whether a specific prayer is active.
+ */
 public class PrayerActiveCondition extends ConditionDefinition
 {
 	private Prayer prayer = Prayer.THICK_SKIN;

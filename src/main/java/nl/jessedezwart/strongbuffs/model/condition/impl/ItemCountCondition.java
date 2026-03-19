@@ -11,6 +11,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+/**
+ * Persisted condition definition that compares an inventory item's quantity to a threshold.
+ */
 public class ItemCountCondition extends NumericConditionDefinition
 {
 	private String itemName = "";

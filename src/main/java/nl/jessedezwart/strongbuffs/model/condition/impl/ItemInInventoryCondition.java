@@ -10,6 +10,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition that checks whether a named item exists in inventory.
+ */
 public class ItemInInventoryCondition extends ConditionDefinition
 {
 	private String itemName = "";

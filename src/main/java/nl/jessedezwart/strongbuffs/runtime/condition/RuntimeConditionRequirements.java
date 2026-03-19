@@ -8,6 +8,12 @@ import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
 
+/**
+ * Immutable watchlist describing which runtime state slices currently matter.
+ *
+ * <p>The compiler derives this from the enabled rule set and passes it to the tracker so event
+ * handlers only refresh state that some active rule can actually observe.</p>
+ */
 public final class RuntimeConditionRequirements
 {
 	private static final RuntimeConditionRequirements EMPTY = builder().build();
@@ -128,6 +134,9 @@ public final class RuntimeConditionRequirements
 		return groundItems;
 	}
 
+	/**
+	 * Returns whether a periodic game tick is required in addition to direct event updates.
+	 */
 	public boolean needsGameTick()
 	{
 		return runEnergy || playerLocation || playerInstance || !xpGainSkills.isEmpty();
@@ -268,6 +277,9 @@ public final class RuntimeConditionRequirements
 				new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems), new LinkedHashSet<>(groundItems));
 		}
 
+		/**
+		 * Merges another requirement set into this builder when compiling multiple rules together.
+		 */
 		public Builder merge(RuntimeConditionRequirements requirements)
 		{
 			if (requirements == null)
@@ -350,6 +362,8 @@ public final class RuntimeConditionRequirements
 
 		private static void addName(Set<String> target, String value)
 		{
+			// Item tracking uses normalized names so editor input and runtime lookups can match even
+			// if casing or whitespace differs.
 			String normalized = InventoryRuntimeState.normalizeName(value);
 
 			if (normalized != null)

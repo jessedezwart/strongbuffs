@@ -10,6 +10,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition for checking whether the player is inside a configured world area.
+ */
 public class PlayerInZoneCondition extends ConditionDefinition
 {
 	private int southWestX;

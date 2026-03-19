@@ -13,6 +13,9 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 /**
  * UI-only mutable copy of a rule definition used to isolate Swing edits from
  * persisted state.
+ *
+ * <p>The draft mirrors {@link nl.jessedezwart.strongbuffs.model.rule.RuleDefinition} closely but
+ * adds UI-specific state such as whether the rule has never been saved before.</p>
  */
 @Data
 @NoArgsConstructor
@@ -27,6 +30,9 @@ public class RuleDraft
 	private ActionDefinition action;
 	private boolean newRule = true;
 
+	/**
+	 * Creates a deep editable copy from a persisted rule definition.
+	 */
 	public static RuleDraft fromRuleDefinition(RuleDefinition ruleDefinition)
 	{
 		RuleDraft draft = new RuleDraft();
@@ -41,6 +47,9 @@ public class RuleDraft
 		return draft;
 	}
 
+	/**
+	 * Converts the draft back into a persisted rule definition shape.
+	 */
 	public RuleDefinition toRuleDefinition()
 	{
 		RuleDefinition ruleDefinition = new RuleDefinition();
@@ -68,6 +77,9 @@ public class RuleDraft
 		return copy;
 	}
 
+	/**
+	 * Deep-copies the persisted condition tree so nested Swing edits stay isolated.
+	 */
 	public static ConditionGroup copyGroup(ConditionGroup source)
 	{
 		ConditionGroup copy = new ConditionGroup();

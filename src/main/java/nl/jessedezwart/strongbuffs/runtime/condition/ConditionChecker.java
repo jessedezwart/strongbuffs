@@ -9,6 +9,9 @@ import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
 /**
  * Evaluates persisted condition definitions against cached runtime state.
+ *
+ * <p>The checker stays intentionally small: boolean tree traversal lives here, while the meaning of
+ * each leaf condition type is delegated to {@link ConditionRuntimeRegistry}.</p>
  */
 public class ConditionChecker
 {
@@ -25,6 +28,9 @@ public class ConditionChecker
 		this.conditionRuntimeRegistry = conditionRuntimeRegistry;
 	}
 
+	/**
+	 * Evaluates one persisted condition tree against the cached runtime snapshot.
+	 */
 	public boolean evaluate(ConditionGroup group, RuntimeState state)
 	{
 		if (group == null || state == null || group.getChildren().isEmpty())
@@ -56,6 +62,9 @@ public class ConditionChecker
 		return true;
 	}
 
+	/**
+	 * Evaluates one persisted leaf condition against the cached runtime snapshot.
+	 */
 	public boolean evaluate(ConditionDefinition condition, RuntimeState state)
 	{
 		if (condition == null || state == null)

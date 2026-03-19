@@ -6,6 +6,9 @@ import java.util.List;
 import lombok.Getter;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 
+/**
+ * Immutable bundle of compiled rules plus their aggregate runtime metadata.
+ */
 @Getter
 public class CompiledRuleSet
 {

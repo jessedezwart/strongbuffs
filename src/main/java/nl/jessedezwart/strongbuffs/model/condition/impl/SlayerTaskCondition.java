@@ -12,6 +12,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+/**
+ * Persisted condition definition for slayer-task activity or kills remaining.
+ */
 public class SlayerTaskCondition extends NumericConditionDefinition
 {
 	private SlayerTaskCheck check = SlayerTaskCheck.TASK_ACTIVE;

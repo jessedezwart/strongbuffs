@@ -12,6 +12,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted action definition for flashing the screen with a configured color.
+ */
 public class ScreenFlashAction extends ActionDefinition
 {
 	private String colorHex = "#FF0000";

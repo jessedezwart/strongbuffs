@@ -28,6 +28,13 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.XpGainCondition;
 import nl.jessedezwart.strongbuffs.runtime.state.InventoryRuntimeState;
 import nl.jessedezwart.strongbuffs.runtime.state.RuntimeState;
 
+/**
+ * Runtime mapping layer between persisted condition definitions and live cached state.
+ *
+ * <p>Each registration answers three related questions for one condition type: how to match it
+ * against {@link RuntimeState}, which runtime slices must be tracked for it, and how to format the
+ * current live value for user-facing actions.</p>
+ */
 @Singleton
 public class ConditionRuntimeRegistry
 {
@@ -79,6 +86,9 @@ public class ConditionRuntimeRegistry
 			(condition, state) -> state.getLocation().isInInstance() ? "instance" : "world");
 	}
 
+	/**
+	 * Evaluates one persisted condition against the cached runtime snapshot.
+	 */
 	public boolean matches(ConditionDefinition conditionDefinition, RuntimeState runtimeState)
 	{
 		if (conditionDefinition == null || runtimeState == null)
@@ -89,6 +99,9 @@ public class ConditionRuntimeRegistry
 		return getRegistration(conditionDefinition).matches(conditionDefinition, runtimeState);
 	}
 
+	/**
+	 * Adds the runtime state requirements needed to evaluate one condition type.
+	 */
 	public void contributeRequirements(ConditionDefinition conditionDefinition,
 		RuntimeConditionRequirements.Builder builder)
 	{
@@ -100,6 +113,9 @@ public class ConditionRuntimeRegistry
 		getRegistration(conditionDefinition).contributeRequirements(conditionDefinition, builder);
 	}
 
+	/**
+	 * Formats the current live value for actions that display runtime context to the user.
+	 */
 	public String formatValue(ConditionDefinition conditionDefinition, RuntimeState runtimeState)
 	{
 		if (conditionDefinition == null || runtimeState == null)
@@ -306,6 +322,8 @@ public class ConditionRuntimeRegistry
 		BiConsumer<T, RuntimeConditionRequirements.Builder> requirementContributor,
 		BiFunction<T, RuntimeState, String> valueFormatter)
 	{
+		// Keeping match logic, requirement planning, and formatting together prevents new condition
+		// types from drifting across three separate registries.
 		registrations.put(conditionType,
 			new ConditionRuntimeRegistration<>(conditionType, matcher, requirementContributor, valueFormatter));
 	}

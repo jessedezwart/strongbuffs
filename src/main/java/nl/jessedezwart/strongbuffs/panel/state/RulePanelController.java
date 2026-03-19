@@ -37,6 +37,9 @@ public class RulePanelController
 		reload();
 	}
 
+	/**
+	 * Reloads persisted rules and clears any transient editor state.
+	 */
 	public void reload()
 	{
 		repository.reload();
@@ -71,6 +74,9 @@ public class RulePanelController
 		return draft != null && draftSession.hasUnsavedChanges(repository.findById(draft.getId()));
 	}
 
+	/**
+	 * Revalidates the current draft without persisting it.
+	 */
 	public RuleControllerActionResult revalidateDraft()
 	{
 		validationResult = draftValidator.validate(draftSession.getDraft());
@@ -79,6 +85,9 @@ public class RulePanelController
 			: RuleControllerActionResult.validationFailed(validationResult);
 	}
 
+	/**
+	 * Requests that the current selection change, deferring the action when unsaved edits exist.
+	 */
 	public RuleControllerActionResult requestSelectRule(String ruleId)
 	{
 		if (Objects.equals(getSelectedRuleId(), ruleId))
@@ -89,11 +98,17 @@ public class RulePanelController
 		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), () -> selectRuleInternal(ruleId));
 	}
 
+	/**
+	 * Requests creation of a new rule draft, respecting unsaved-change prompts.
+	 */
 	public RuleControllerActionResult requestCreateRule()
 	{
 		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::createRuleInternal);
 	}
 
+	/**
+	 * Duplicates the selected rule into a new draft when possible.
+	 */
 	public RuleControllerActionResult requestDuplicateSelectedRule()
 	{
 		if (getSelectedRuleId() == null)
@@ -104,6 +119,9 @@ public class RulePanelController
 		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::duplicateSelectedRuleInternal);
 	}
 
+	/**
+	 * Deletes the selected persisted rule or discards an unsaved new draft.
+	 */
 	public RuleControllerActionResult requestDeleteSelectedRule()
 	{
 		if (getSelectedRuleId() == null)
@@ -124,11 +142,17 @@ public class RulePanelController
 		return unsavedChangesGuard.runOrDefer(hasUnsavedChanges(), this::deleteSelectedRuleInternal);
 	}
 
+	/**
+	 * Resolves a deferred action after the user responds to an unsaved-changes prompt.
+	 */
 	public RuleControllerActionResult resolvePendingAction(UnsavedResolution resolution)
 	{
 		return unsavedChangesGuard.resolve(resolution, this::saveDraft, this::discardDraftInternal);
 	}
 
+	/**
+	 * Validates and persists the current draft, then resynchronizes the runtime rule set.
+	 */
 	public RuleControllerActionResult saveDraft()
 	{
 		RuleDraft draft = draftSession.getDraft();
@@ -203,6 +227,8 @@ public class RulePanelController
 		}
 		else
 		{
+			// Persisted rules remain the source of truth for existing entries, so cancel restores a
+			// fresh clone from the repository rather than trying to reverse field-by-field edits.
 			draftSession.select(repository.findById(draft.getId()));
 		}
 

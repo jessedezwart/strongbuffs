@@ -7,12 +7,16 @@ import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
 
 /**
  * Persisted user-defined rule configuration.
+ *
+ * <p>This is the handoff object between the editor, persistence store, and runtime compiler. The
+ * runtime never mutates these definitions directly; it compiles them into dedicated runtime
+ * structures instead.</p>
  */
 @Data
 @NoArgsConstructor
 public class RuleDefinition
 {
-	// Used for migration purposes, should be incremented when breaking changes are made to the schema.
+	// Stored with each saved rule so deserialization can reject or migrate older shapes safely.
 	private int schemaVersion = 1;
 	private String id;
 	private String name;

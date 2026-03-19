@@ -20,7 +20,10 @@ import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import net.runelite.client.ui.ColorScheme;
 
 /**
- * Builds condition editor metadata and field components from numeric condition model definitions.
+ * Builds condition editor metadata and Swing editors from persisted condition definitions.
+ *
+ * <p>The registry relies on the definition catalog for approved types and uses the editor metadata
+ * exposed by each definition to render a generic form.</p>
  */
 @Singleton
 public class ConditionEditorRegistry
@@ -76,6 +79,9 @@ public class ConditionEditorRegistry
 		return conditionDefinition.getEditorDescription();
 	}
 
+	/**
+	 * Creates an editor component bound directly to the provided draft condition instance.
+	 */
 	public JComponent createEditor(ConditionDefinition conditionDefinition, Runnable onChange)
 	{
 		if (conditionDefinition instanceof NumericConditionDefinition)

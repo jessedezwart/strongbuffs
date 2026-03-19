@@ -4,6 +4,12 @@ import java.util.List;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 
+/**
+ * Registry interface for all approved persisted condition and action types.
+ *
+ * <p>The editor, persistence layer, and runtime tests all depend on this catalog to resolve type
+ * ids, fetch metadata, and create new default instances.</p>
+ */
 public interface DefinitionCatalog
 {
 	List<Class<? extends ConditionDefinition>> getConditionDefinitions();

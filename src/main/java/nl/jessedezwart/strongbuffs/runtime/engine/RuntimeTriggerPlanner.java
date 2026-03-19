@@ -5,9 +5,15 @@ import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.runtime.condition.RuntimeConditionRequirements;
 import nl.jessedezwart.strongbuffs.runtime.tracker.RuntimeTrigger;
 
+/**
+ * Maps aggregate runtime requirements to the runtime triggers that can invalidate them.
+ */
 @Singleton
 public class RuntimeTriggerPlanner
 {
+	/**
+	 * Produces the minimal trigger set needed to reevaluate rules using the given requirements.
+	 */
 	public EnumSet<RuntimeTrigger> plan(RuntimeConditionRequirements requirements)
 	{
 		EnumSet<RuntimeTrigger> triggers = EnumSet.noneOf(RuntimeTrigger.class);

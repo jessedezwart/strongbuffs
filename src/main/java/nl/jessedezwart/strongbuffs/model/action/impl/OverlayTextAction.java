@@ -11,7 +11,11 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @NoArgsConstructor
+// Don't include superclass fields in equals and hashCode, as they are not relevant for action equality
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted action definition for showing text in the shared runtime overlay.
+ */
 public class OverlayTextAction extends ActionDefinition
 {
 	private String text;

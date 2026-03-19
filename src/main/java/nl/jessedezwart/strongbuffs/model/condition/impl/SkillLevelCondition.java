@@ -13,6 +13,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+/**
+ * Persisted condition definition for a real skill level threshold.
+ */
 public class SkillLevelCondition extends NumericConditionDefinition
 {
 	private Skill skill = Skill.ATTACK;

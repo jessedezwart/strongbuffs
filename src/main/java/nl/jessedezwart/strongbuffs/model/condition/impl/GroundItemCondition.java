@@ -10,6 +10,9 @@ import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+/**
+ * Persisted condition definition that matches when a nearby ground item name is present.
+ */
 public class GroundItemCondition extends ConditionDefinition
 {
 	private String itemName = "";
