@@ -185,6 +185,12 @@ function bootstrap(): void
 		renderActivationSection(domRefs, manifestRefs.manifest, state.rule, actions);
 		renderActionSection(domRefs, manifestRefs, state.rule, actions);
 		refreshOutput();
+		domRefs.basics.setAttribute("aria-busy", "false");
+		domRefs.conditions.setAttribute("aria-busy", "false");
+		domRefs.activation.setAttribute("aria-busy", "false");
+		domRefs.action.setAttribute("aria-busy", "false");
+		domRefs.status.setAttribute("aria-busy", "false");
+		document.documentElement.classList.remove("app-loading");
 		restoreFocusState(state.focus);
 	}
 

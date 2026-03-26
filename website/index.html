@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="app-loading">
 
 <head>
 	<meta charset="UTF-8">
@@ -40,7 +40,12 @@
 						<h2 id="basics-heading">Details</h2>
 						<p>Rule name and enabled state.</p>
 					</header>
-					<section id="basics-section"></section>
+					<section id="basics-section" class="loading-slot loading-slot--basics" aria-busy="true">
+						<div class="loading-grid" aria-hidden="true">
+							<div class="loading-field"></div>
+							<div class="loading-field loading-field--short"></div>
+						</div>
+					</section>
 				</section>
 
 				<section class="panel__section" aria-labelledby="conditions-heading">
@@ -48,7 +53,21 @@
 						<h2 id="conditions-heading">Conditions</h2>
 						<p>What triggers the action.</p>
 					</header>
-					<section id="conditions-section"></section>
+					<section id="conditions-section" class="loading-slot" aria-busy="true">
+						<div class="loading-card" aria-hidden="true">
+							<div class="loading-row">
+								<div class="loading-line loading-line--title"></div>
+							</div>
+							<div class="loading-grid">
+								<div class="loading-field"></div>
+								<div class="loading-field"></div>
+							</div>
+							<div class="loading-toolbar">
+								<div class="loading-pill"></div>
+								<div class="loading-pill"></div>
+							</div>
+						</div>
+					</section>
 				</section>
 
 				<section class="panel__section" aria-labelledby="activation-heading">
@@ -56,7 +75,12 @@
 						<h2 id="activation-heading">Activation</h2>
 						<p>Choose when the rule should fire.</p>
 					</header>
-					<section id="activation-section"></section>
+					<section id="activation-section" class="loading-slot loading-slot--activation" aria-busy="true">
+						<div class="loading-grid" aria-hidden="true">
+							<div class="loading-field"></div>
+							<div class="loading-field"></div>
+						</div>
+					</section>
 				</section>
 
 				<section class="panel__section" aria-labelledby="action-heading">
@@ -64,7 +88,20 @@
 						<h2 id="action-heading">Action</h2>
 						<p>What the rule does when it fires.</p>
 					</header>
-					<section id="action-section"></section>
+					<section id="action-section" class="loading-slot loading-slot--action" aria-busy="true">
+						<div class="loading-grid" aria-hidden="true">
+							<div class="loading-field"></div>
+						</div>
+						<div class="loading-card" aria-hidden="true">
+							<div class="loading-row">
+								<div class="loading-line loading-line--title"></div>
+							</div>
+							<div class="loading-grid">
+								<div class="loading-field"></div>
+								<div class="loading-field"></div>
+							</div>
+						</div>
+					</section>
 				</section>
 			</section>
 		</div>
@@ -77,7 +114,10 @@
 				</p>
 			</header>
 
-			<section class="status" id="status-box" aria-live="polite"></section>
+			<section class="status" id="status-box" aria-live="polite" aria-busy="true">
+				<strong>Preparing rule output</strong>
+				<p>Loading available conditions and actions.</p>
+			</section>
 			<div class="output__json">
 				<div class="output__actions" role="toolbar" aria-label="JSON actions">
 					<button type="button" class="button--secondary button--icon" id="copy-json" aria-label="Copy JSON"
@@ -89,7 +129,9 @@
 						<span class="button__icon icon--download" aria-hidden="true"></span>
 					</button>
 				</div>
-				<pre><code id="json-output"></code></pre>
+				<pre><code id="json-output">{
+  "loading": true
+}</code></pre>
 			</div>
 		</aside>
 	</main>
