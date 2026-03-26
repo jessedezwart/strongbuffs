@@ -32,6 +32,6 @@ jobs:
             - uses: gradle/actions/setup-gradle@v5
               with:
                   gradle-version: wrapper
-
+                  cache-cleanup: never
             - name: Check
               run: ./gradlew check
