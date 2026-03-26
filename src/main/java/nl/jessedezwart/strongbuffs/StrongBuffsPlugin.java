@@ -15,6 +15,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
+import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 
 @Slf4j
 @PluginDescriptor(name = "StrongBuffs", description = "A WeakAuras-like plugin for RuneLite. Only supports explicitly approved features.", tags =
@@ -22,20 +23,23 @@ import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
 public class StrongBuffsPlugin extends Plugin
 {
 	@Inject
-	private StrongBuffsConfig config;
-
-	@Inject
 	private ClientToolbar clientToolbar;
 
 	@Inject
 	private StrongBuffsPanel strongBuffsPanel;
+
+	@Inject
+	private RuleRuntimeController ruleRuntimeController;
 
 	private NavigationButton navigationButton;
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		// Reload persisted rules before runtime startup so the tracker and engine begin with the
+		// same rule set the panel shows to the user.
 		strongBuffsPanel.reload();
+		ruleRuntimeController.startUp();
 		SwingUtilities.updateComponentTreeUI(strongBuffsPanel.getWrappedPanel());
 		navigationButton = NavigationButton.builder().tooltip("Strong Buffs").icon(createNavigationIcon()).priority(6)
 				.panel(strongBuffsPanel).build();
@@ -46,6 +50,8 @@ public class StrongBuffsPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
+		ruleRuntimeController.shutDown();
+
 		if (navigationButton != null)
 		{
 			clientToolbar.removeNavigation(navigationButton);
@@ -61,6 +67,9 @@ public class StrongBuffsPlugin extends Plugin
 		return configManager.getConfig(StrongBuffsConfig.class);
 	}
 
+	/**
+	 * Builds a small toolbar icon without needing a bundled image asset.
+	 */
 	private static BufferedImage createNavigationIcon()
 	{
 		BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);

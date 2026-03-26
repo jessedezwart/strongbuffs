@@ -3,17 +3,18 @@ package nl.jessedezwart.strongbuffs.model.rule;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 
 /**
  * Persisted user-defined rule configuration.
+ *
+ * This is the handoff object between the editor, persistence store, and runtime compiler.
  */
 @Data
 @NoArgsConstructor
 public class RuleDefinition
 {
-	// Used for migration purposes, should be incremented when breaking changes are made to the schema.
-	// TODO: implement migration logic in RuleDefinitionStore when loading rules with an older schema version
+	// Stored with each saved rule so deserialization can reject or migrate older shapes safely.
 	private int schemaVersion = 1;
 	private String id;
 	private String name;

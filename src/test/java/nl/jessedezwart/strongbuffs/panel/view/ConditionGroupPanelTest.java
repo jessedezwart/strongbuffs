@@ -3,9 +3,9 @@ package nl.jessedezwart.strongbuffs.panel.view;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
 import org.junit.Test;
 

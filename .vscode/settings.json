@@ -15,5 +15,5 @@
 	"java.format.settings.url": "config/eclipse-formatter.xml",
 	"java.checkstyle.configuration": "${workspaceFolder}/config/checkstyle/checkstyle.xml",
 	"java.checkstyle.version": "10.21.4",
-	"java.compile.nullAnalysis.mode": "disabled"
+	"java.compile.nullAnalysis.mode": "automatic",
 }

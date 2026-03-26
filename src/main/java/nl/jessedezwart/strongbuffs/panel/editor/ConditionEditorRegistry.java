@@ -8,98 +8,120 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
+
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
-import nl.jessedezwart.strongbuffs.panel.state.RuleDescriptions;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import net.runelite.client.ui.ColorScheme;
 
 /**
- * Builds condition editor metadata and field components from numeric condition model definitions.
+ * Builds condition editor metadata and Swing editors from persisted condition definitions.
+ *
+ * <p>The registry relies on the definition catalog for approved types and uses the editor metadata
+ * exposed by each definition to render a generic form.</p>
  */
 @Singleton
 public class ConditionEditorRegistry
 {
-	private final List<Class<? extends NumericConditionDefinition>> conditionClasses;
-	private final Map<Class<? extends ConditionDefinition>, NumericConditionDefinition> metadataByClass;
+	private final List<Class<? extends ConditionDefinition>> conditionClasses;
+	private final Map<Class<? extends ConditionDefinition>, ConditionDefinition> metadataByClass;
+	private final DefinitionCatalog definitionCatalog;
 
 	public ConditionEditorRegistry()
 	{
-		List<Class<? extends NumericConditionDefinition>> items = loadConditionClasses();
+		this(new DefinitionCatalog());
+	}
+
+	@Inject
+	public ConditionEditorRegistry(DefinitionCatalog definitionCatalog)
+	{
+		this.definitionCatalog = definitionCatalog;
+		List<Class<? extends ConditionDefinition>> items = loadConditionClasses(definitionCatalog);
 		conditionClasses = Collections.unmodifiableList(items);
 
-		Map<Class<? extends ConditionDefinition>, NumericConditionDefinition> byClass = new LinkedHashMap<>();
+		Map<Class<? extends ConditionDefinition>, ConditionDefinition> byClass = new LinkedHashMap<>();
 
-		for (Class<? extends NumericConditionDefinition> conditionClass : items)
+		for (Class<? extends ConditionDefinition> conditionClass : items)
 		{
-			byClass.put(conditionClass, (NumericConditionDefinition) DefinitionRegistry.getConditionMetadata(conditionClass));
+			byClass.put(conditionClass, definitionCatalog.getConditionMetadata(conditionClass));
 		}
 
 		metadataByClass = Collections.unmodifiableMap(byClass);
 	}
 
-	public List<Class<? extends NumericConditionDefinition>> getConditionClasses()
+	public List<Class<? extends ConditionDefinition>> getConditionClasses()
 	{
 		return conditionClasses;
 	}
 
-	public NumericConditionDefinition getByConditionClass(Class<? extends ConditionDefinition> conditionClass)
+	public ConditionDefinition getByConditionClass(Class<? extends ConditionDefinition> conditionClass)
 	{
 		return metadataByClass.get(conditionClass);
 	}
 
-	public NumericConditionDefinition createDefaultCondition(Class<? extends NumericConditionDefinition> conditionClass)
+	public ConditionDefinition createDefaultCondition(Class<? extends ConditionDefinition> conditionClass)
 	{
-		return DefinitionRegistry.createCondition(conditionClass);
+		return definitionCatalog.createCondition(conditionClass);
 	}
 
 	public ConditionDefinition copy(ConditionDefinition conditionDefinition)
 	{
-		if (!(conditionDefinition instanceof NumericConditionDefinition))
-		{
-			throw new IllegalArgumentException("Unsupported condition type: " + conditionDefinition.getClass().getName());
-		}
-
 		return conditionDefinition.copy();
 	}
 
 	public String describe(ConditionDefinition conditionDefinition)
 	{
-		if (!(conditionDefinition instanceof NumericConditionDefinition))
-		{
-			return conditionDefinition.getClass().getSimpleName();
-		}
-
-		NumericConditionDefinition condition = (NumericConditionDefinition) conditionDefinition;
-		return condition.getEditorLabel() + " " + RuleDescriptions.describeComparisonOperator(condition.getOperator()) +
-			" " + condition.getThreshold() + condition.getEditorUnit();
+		return conditionDefinition.getEditorDescription();
 	}
 
+	/**
+	 * Creates an editor component bound directly to the provided draft condition instance.
+	 */
 	public JComponent createEditor(ConditionDefinition conditionDefinition, Runnable onChange)
 	{
-		if (!(conditionDefinition instanceof NumericConditionDefinition))
+		if (conditionDefinition instanceof NumericConditionDefinition)
 		{
-			throw new IllegalArgumentException("Unsupported condition type: " + conditionDefinition.getClass().getName());
+			return createNumericEditor((NumericConditionDefinition) conditionDefinition, onChange);
 		}
 
-		NumericConditionDefinition condition = (NumericConditionDefinition) conditionDefinition;
+		JPanel panel = ActionEditorSupport.createVerticalPanel();
+		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		for (EditorField field : conditionDefinition.getEditorFields())
+		{
+			JComponent component = EditorFieldComponentFactory.createComponent(field, onChange);
+
+			if (field instanceof EditorField.BooleanEditorField)
+			{
+				panel.add(component);
+				continue;
+			}
+
+			panel.add(ActionEditorSupport.labeled(field.getLabel(), component));
+		}
+
+		return panel;
+	}
+
+	private static JComponent createNumericEditor(NumericConditionDefinition conditionDefinition, Runnable onChange)
+	{
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		panel.setOpaque(true);
 		panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
-		for (EditorField field : condition.getEditorFields())
+		for (EditorField field : conditionDefinition.getEditorFields())
 		{
 			JComponent component = EditorFieldComponentFactory.createComponent(field, onChange);
 
 			if (component instanceof javax.swing.JComboBox)
 			{
-				component.setPreferredSize(new Dimension(56, component.getPreferredSize().height));
+				component.setPreferredSize(new Dimension(88, component.getPreferredSize().height));
 				component.setMaximumSize(component.getPreferredSize());
 			}
 
@@ -109,24 +131,17 @@ public class ConditionEditorRegistry
 		return panel;
 	}
 
-	private static List<Class<? extends NumericConditionDefinition>> loadConditionClasses()
+	private static List<Class<? extends ConditionDefinition>> loadConditionClasses(DefinitionCatalog definitionCatalog)
 	{
-		List<Class<? extends NumericConditionDefinition>> items = new ArrayList<>();
-
-		for (Class<? extends ConditionDefinition> conditionClass : RuleDefinitionStore.getSupportedConditionDefinitionClasses())
-		{
-			if (NumericConditionDefinition.class.isAssignableFrom(conditionClass))
-			{
-				items.add(conditionClass.asSubclass(NumericConditionDefinition.class));
-			}
-		}
+		List<Class<? extends ConditionDefinition>> items =
+			new ArrayList<>(definitionCatalog.getConditionDefinitions());
 
 		items.sort(Comparator.comparing(conditionClass ->
-			((NumericConditionDefinition) DefinitionRegistry.getConditionMetadata(conditionClass)).getEditorLabel()));
+			definitionCatalog.getConditionMetadata(conditionClass).getEditorLabel()));
 
 		if (items.isEmpty())
 		{
-			throw new IllegalStateException("No numeric condition models were found.");
+			throw new IllegalStateException("No condition models were found.");
 		}
 
 		return items;

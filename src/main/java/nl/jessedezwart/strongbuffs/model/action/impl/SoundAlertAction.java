@@ -5,33 +5,29 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class SoundAlertAction extends ActionDefinition
+/**
+ * Persisted action definition for playing one of the built-in alert sounds.
+ */
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class SoundAlertAction implements ActionDefinition
 {
 	private static final Map<String, String> SOUND_LABELS_BY_KEY = createSoundLabelsByKey();
 
+	private final transient String typeId = "sound_alert";
+	private final transient String editorLabel = "Sound alert";
+
 	private String soundKey = "notification";
-	private int volumePercent = 100;
-
-	@Override
-	public String getTypeId()
-	{
-		return "sound_alert";
-	}
-
-	@Override
-	public String getEditorLabel()
-	{
-		return "Sound alert";
-	}
+	private Integer volumePercent = 100;
 
 	@Override
 	public String getEditorDescription()

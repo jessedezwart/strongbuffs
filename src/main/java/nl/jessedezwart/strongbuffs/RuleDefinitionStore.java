@@ -19,12 +19,18 @@ import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionNode;
-import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
+import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 
+/**
+ * Persists rule definitions as versioned JSON in RuneLite config storage.
+ *
+ * <p>The store serializes persisted model types only. Live runtime objects are rebuilt from those
+ * definitions at startup so saved data stays stable, diffable, and migration-friendly.</p>
+ */
 @Slf4j
 @Singleton
 public class RuleDefinitionStore
@@ -36,13 +42,18 @@ public class RuleDefinitionStore
 	private final ConfigManager configManager;
 	private final Gson gson;
 
-	@Inject
 	public RuleDefinitionStore(ConfigManager configManager)
 	{
-		this(configManager, createGson());
+		this(configManager, new DefinitionCatalog());
 	}
 
-	RuleDefinitionStore(ConfigManager configManager, Gson gson)
+	@Inject
+	public RuleDefinitionStore(ConfigManager configManager, DefinitionCatalog definitionCatalog)
+	{
+		this(configManager, definitionCatalog, createGson(definitionCatalog));
+	}
+
+	RuleDefinitionStore(ConfigManager configManager, DefinitionCatalog definitionCatalog, Gson gson)
 	{
 		this.configManager = configManager;
 		this.gson = gson;
@@ -53,6 +64,9 @@ public class RuleDefinitionStore
 		return deserialize(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES));
 	}
 
+	/**
+	 * Replaces the stored rule list with the provided persisted definitions.
+	 */
 	public void save(List<RuleDefinition> rules)
 	{
 		configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_RULES, serialize(rules));
@@ -71,12 +85,25 @@ public class RuleDefinitionStore
 					continue;
 				}
 
-				rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
-				sanitizedRules.add(rule);
+				sanitizedRules.add(copyForStorage(rule));
 			}
 		}
 
 		return gson.toJson(sanitizedRules);
+	}
+
+	private static RuleDefinition copyForStorage(RuleDefinition rule)
+	{
+		RuleDefinition copy = new RuleDefinition();
+		copy.setSchemaVersion(CURRENT_SCHEMA_VERSION);
+		copy.setId(rule.getId());
+		copy.setName(rule.getName());
+		copy.setEnabled(rule.isEnabled());
+		copy.setRootGroup(rule.getRootGroup());
+		copy.setActivationMode(rule.getActivationMode());
+		copy.setCooldownTicks(rule.getCooldownTicks());
+		copy.setAction(rule.getAction());
+		return copy;
 	}
 
 	List<RuleDefinition> deserialize(String serializedRules)
@@ -125,6 +152,8 @@ public class RuleDefinitionStore
 
 			try
 			{
+				// Invalid or unknown rules are dropped wholesale so the runtime never executes a
+				// partially recovered rule with ambiguous semantics.
 				RuleDefinition rule = gson.fromJson(jsonObject, RuleDefinition.class);
 				RuleDefinition migratedRule = migrate(rule);
 
@@ -161,6 +190,8 @@ public class RuleDefinitionStore
 			rule.setSchemaVersion(CURRENT_SCHEMA_VERSION);
 		}
 
+		// Fail closed when required structural pieces are missing. The editor can recreate a rule
+		// safely, but the runtime cannot infer intent from partial persisted data.
 		if (rule.getRootGroup() == null || rule.getAction() == null)
 		{
 			log.warn("Ignoring rule {} because required fields were missing", rule.getId());
@@ -171,34 +202,40 @@ public class RuleDefinitionStore
 		return rule;
 	}
 
-	private static Gson createGson()
+	private static Gson createGson(DefinitionCatalog definitionCatalog)
 	{
-		return new GsonBuilder().registerTypeAdapter(ConditionNode.class, new ConditionNodeAdapter())
-				.registerTypeAdapter(ActionDefinition.class, new ActionDefinitionAdapter()).create();
-	}
-
-	public static List<Class<? extends ConditionDefinition>> getSupportedConditionDefinitionClasses()
-	{
-		return DefinitionRegistry.getConditionDefinitions();
-	}
-
-	public static List<Class<? extends ActionDefinition>> getSupportedActionDefinitionClasses()
-	{
-		return DefinitionRegistry.getActionDefinitions();
+		return new GsonBuilder().registerTypeAdapter(ConditionNode.class, new ConditionNodeAdapter(definitionCatalog))
+			.registerTypeAdapter(ActionDefinition.class, new ActionDefinitionAdapter(definitionCatalog))
+			.create();
 	}
 
 	private static final class ConditionNodeAdapter
 			implements JsonSerializer<ConditionNode>, JsonDeserializer<ConditionNode>
 	{
 		private static final String TYPE_FIELD = "type";
+		private static final String GROUP_TYPE = "group";
+		private final DefinitionCatalog definitionCatalog;
+
+		private ConditionNodeAdapter(DefinitionCatalog definitionCatalog)
+		{
+			this.definitionCatalog = definitionCatalog;
+		}
 
 		@Override
 		public JsonElement serialize(ConditionNode src, Type typeOfSrc, JsonSerializationContext context)
 		{
 			JsonObject jsonObject = context.serialize(src, src.getClass()).getAsJsonObject();
-			String type = src.getTypeId();
+			String type;
 
-			if (type == null)
+			if (src instanceof ConditionGroup)
+			{
+				type = GROUP_TYPE;
+			}
+			else if (src instanceof ConditionDefinition)
+			{
+				type = ((ConditionDefinition) src).getTypeId();
+			}
+			else
 			{
 				throw new JsonParseException("Unsupported condition node type: " + src.getClass().getName());
 			}
@@ -212,13 +249,15 @@ public class RuleDefinitionStore
 		{
 			JsonObject jsonObject = json.getAsJsonObject();
 			String type = requireType(jsonObject, TYPE_FIELD);
-			Class<? extends ConditionNode> targetClass = resolveConditionNodeClass(type);
+			Class<? extends ConditionNode> targetClass = resolveConditionNodeClass(type, definitionCatalog);
 
 			if (targetClass == null)
 			{
 				throw new JsonParseException("Unsupported condition node type: " + type);
 			}
 
+			// The synthetic type discriminator is used only for adapter dispatch and should not leak
+			// into the target persisted model object.
 			JsonObject payload = jsonObject.deepCopy();
 			payload.remove(TYPE_FIELD);
 			return context.deserialize(payload, targetClass);
@@ -229,6 +268,12 @@ public class RuleDefinitionStore
 			implements JsonSerializer<ActionDefinition>, JsonDeserializer<ActionDefinition>
 	{
 		private static final String TYPE_FIELD = "type";
+		private final DefinitionCatalog definitionCatalog;
+
+		private ActionDefinitionAdapter(DefinitionCatalog definitionCatalog)
+		{
+			this.definitionCatalog = definitionCatalog;
+		}
 
 		@Override
 		public JsonElement serialize(ActionDefinition src, Type typeOfSrc, JsonSerializationContext context)
@@ -250,7 +295,7 @@ public class RuleDefinitionStore
 		{
 			JsonObject jsonObject = json.getAsJsonObject();
 			String type = requireType(jsonObject, TYPE_FIELD);
-			Class<? extends ActionDefinition> targetClass = resolveActionDefinitionClass(type);
+			Class<? extends ActionDefinition> targetClass = resolveActionDefinitionClass(type, definitionCatalog);
 
 			if (targetClass == null)
 			{
@@ -280,23 +325,22 @@ public class RuleDefinitionStore
 		return jsonObject.has("rootGroup") && jsonObject.has("action");
 	}
 
-	private static Class<? extends ConditionNode> resolveConditionNodeClass(String type)
+	private static Class<? extends ConditionNode> resolveConditionNodeClass(String type,
+		DefinitionCatalog definitionCatalog)
 	{
 		if (type == null || type.isEmpty())
 		{
 			return null;
 		}
 
-		ConditionGroup group = new ConditionGroup();
-
-		if (group.getTypeId().equals(type))
+		if (ConditionNodeAdapter.GROUP_TYPE.equals(type))
 		{
 			return ConditionGroup.class;
 		}
 
 		try
 		{
-			return DefinitionRegistry.getConditionDefinitionClass(type);
+			return definitionCatalog.getConditionDefinitionClass(type);
 		}
 		catch (IllegalArgumentException ex)
 		{
@@ -304,7 +348,8 @@ public class RuleDefinitionStore
 		}
 	}
 
-	private static Class<? extends ActionDefinition> resolveActionDefinitionClass(String type)
+	private static Class<? extends ActionDefinition> resolveActionDefinitionClass(String type,
+		DefinitionCatalog definitionCatalog)
 	{
 		if (type == null || type.isEmpty())
 		{
@@ -313,7 +358,7 @@ public class RuleDefinitionStore
 
 		try
 		{
-			return DefinitionRegistry.getActionDefinitionClass(type);
+			return definitionCatalog.getActionDefinitionClass(type);
 		}
 		catch (IllegalArgumentException ex)
 		{

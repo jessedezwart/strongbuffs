@@ -1,25 +1,17 @@
 package nl.jessedezwart.strongbuffs.model.action;
 
-import java.util.List;
-import java.util.Map;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.Definition;
 
-public abstract class ActionDefinition
+/**
+ * Base type for persisted action definitions.
+ *
+ * Implementations describe config editor fields, validation, and copy behavior
+ * only. Runtime effects are delegated to handlers in
+ * {@code nl.jessedezwart.strongbuffs.runtime.action}.
+ *
+ * Implementations should use transient fields for typeId, editorLabel and editorDescription, since these
+ * can be derived from the class type and don't need to be persisted.
+ */
+public interface ActionDefinition extends Definition<ActionDefinition>
 {
-	public abstract String getTypeId();
-
-	public abstract String getEditorLabel();
-
-	public abstract String getEditorDescription();
-
-	public abstract ActionDefinition copy();
-
-	public abstract List<EditorField> getEditorFields();
-
-	public abstract void validate(Map<String, String> errors, String fieldPrefix);
-
-	protected final boolean isValidColorHex(String colorHex)
-	{
-		return colorHex != null && colorHex.matches("^#[0-9A-Fa-f]{6}$");
-	}
 }

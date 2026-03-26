@@ -5,6 +5,9 @@ import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 
 @EqualsAndHashCode(callSuper = true)
+/**
+ * Persisted condition definition for special-attack energy percentage.
+ */
 public class SpecialAttackCondition extends NumericConditionDefinition
 {
 	public SpecialAttackCondition()

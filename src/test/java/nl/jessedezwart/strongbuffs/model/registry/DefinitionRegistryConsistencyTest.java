@@ -17,11 +17,12 @@ public class DefinitionRegistryConsistencyTest
 		"src/main/java/nl/jessedezwart/strongbuffs/model/action/impl");
 	private static final Path CONDITION_IMPL_DIR = PROJECT_ROOT.resolve(
 		"src/main/java/nl/jessedezwart/strongbuffs/model/condition/impl");
+	private final DefinitionCatalog definitionCatalog = new DefinitionCatalog();
 
 	@Test
 	public void actionImplsMatchDefinitionRegistry() throws IOException
 	{
-		assertEquals(readJavaClassNames(ACTION_IMPL_DIR), DefinitionRegistry.getActionDefinitions().stream()
+		assertEquals(readJavaClassNames(ACTION_IMPL_DIR), definitionCatalog.getActionDefinitions().stream()
 			.map(Class::getName)
 			.sorted()
 			.collect(Collectors.toList()));
@@ -30,7 +31,7 @@ public class DefinitionRegistryConsistencyTest
 	@Test
 	public void conditionImplsMatchDefinitionRegistry() throws IOException
 	{
-		assertEquals(readJavaClassNames(CONDITION_IMPL_DIR), DefinitionRegistry.getConditionDefinitions().stream()
+		assertEquals(readJavaClassNames(CONDITION_IMPL_DIR), definitionCatalog.getConditionDefinitions().stream()
 			.map(Class::getName)
 			.sorted()
 			.collect(Collectors.toList()));

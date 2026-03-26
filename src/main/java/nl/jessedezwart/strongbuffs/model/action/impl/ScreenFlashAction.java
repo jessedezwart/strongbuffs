@@ -3,37 +3,29 @@ package nl.jessedezwart.strongbuffs.model.action.impl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.util.ColorUtil;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class ScreenFlashAction extends ActionDefinition
+/**
+ * Persisted action definition for flashing the screen with a configured color.
+ */
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class ScreenFlashAction implements ActionDefinition
 {
+	private final transient String typeId = "screen_flash";
+	private final transient String editorLabel = "Screen flash";
+	private final transient String editorDescription = "Screen flash";
+
 	private String colorHex = "#FF0000";
-	private int durationTicks = 1;
-
-	@Override
-	public String getTypeId()
-	{
-		return "screen_flash";
-	}
-
-	@Override
-	public String getEditorLabel()
-	{
-		return "Screen flash";
-	}
-
-	@Override
-	public String getEditorDescription()
-	{
-		return "Screen flash";
-	}
+	private Integer durationTicks = 1;
 
 	@Override
 	public ActionDefinition copy()
@@ -56,7 +48,7 @@ public class ScreenFlashAction extends ActionDefinition
 	@Override
 	public void validate(Map<String, String> errors, String fieldPrefix)
 	{
-		if (!isValidColorHex(colorHex))
+		if (!ColorUtil.isValidColorHex(colorHex))
 		{
 			errors.put(fieldPrefix + ".color", "Color must be in #RRGGBB format.");
 		}

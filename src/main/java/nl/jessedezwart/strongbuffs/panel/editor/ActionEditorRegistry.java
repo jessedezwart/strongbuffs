@@ -6,33 +6,42 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
+
+import nl.jessedezwart.strongbuffs.model.EditorField;
 import nl.jessedezwart.strongbuffs.model.action.ActionDefinition;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
-import nl.jessedezwart.strongbuffs.model.registry.DefinitionRegistry;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 
 /**
- * Builds action editor metadata and input components from action model field definitions.
+ * Builds action editor metadata and Swing editors from persisted action definitions.
  */
 @Singleton
 public class ActionEditorRegistry
 {
 	private final List<Class<? extends ActionDefinition>> actionClasses;
 	private final Map<Class<? extends ActionDefinition>, ActionDefinition> metadataByClass;
+	private final DefinitionCatalog definitionCatalog;
 
 	public ActionEditorRegistry()
 	{
-		List<Class<? extends ActionDefinition>> items = loadActionClasses();
+		this(new DefinitionCatalog());
+	}
+
+	@Inject
+	public ActionEditorRegistry(DefinitionCatalog definitionCatalog)
+	{
+		this.definitionCatalog = definitionCatalog;
+		List<Class<? extends ActionDefinition>> items = loadActionClasses(definitionCatalog);
 		actionClasses = Collections.unmodifiableList(items);
 
 		Map<Class<? extends ActionDefinition>, ActionDefinition> byClass = new LinkedHashMap<>();
 
 		for (Class<? extends ActionDefinition> actionClass : items)
 		{
-			byClass.put(actionClass, DefinitionRegistry.getActionMetadata(actionClass));
+			byClass.put(actionClass, definitionCatalog.getActionMetadata(actionClass));
 		}
 
 		metadataByClass = Collections.unmodifiableMap(byClass);
@@ -50,7 +59,7 @@ public class ActionEditorRegistry
 
 	public ActionDefinition createDefaultAction(Class<? extends ActionDefinition> actionClass)
 	{
-		return DefinitionRegistry.createAction(actionClass);
+		return definitionCatalog.createAction(actionClass);
 	}
 
 	public String describe(ActionDefinition actionDefinition)
@@ -63,6 +72,9 @@ public class ActionEditorRegistry
 		return actionDefinition.getEditorDescription();
 	}
 
+	/**
+	 * Creates an editor component bound directly to the provided draft action instance.
+	 */
 	public JComponent createEditor(ActionDefinition actionDefinition, Runnable onChange)
 	{
 		JPanel panel = ActionEditorSupport.createVerticalPanel();
@@ -83,11 +95,11 @@ public class ActionEditorRegistry
 		return panel;
 	}
 
-	private static List<Class<? extends ActionDefinition>> loadActionClasses()
+	private static List<Class<? extends ActionDefinition>> loadActionClasses(DefinitionCatalog definitionCatalog)
 	{
 		List<Class<? extends ActionDefinition>> items =
-			new ArrayList<>(RuleDefinitionStore.getSupportedActionDefinitionClasses());
-		items.sort(Comparator.comparing(actionClass -> DefinitionRegistry.getActionMetadata(actionClass).getEditorLabel()));
+			new ArrayList<>(definitionCatalog.getActionDefinitions());
+		items.sort(Comparator.comparing(actionClass -> definitionCatalog.getActionMetadata(actionClass).getEditorLabel()));
 
 		if (items.isEmpty())
 		{

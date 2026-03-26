@@ -13,8 +13,11 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import net.runelite.client.ui.ColorScheme;
-import nl.jessedezwart.strongbuffs.model.editor.EditorField;
+import nl.jessedezwart.strongbuffs.model.EditorField;
 
+/**
+ * Converts declarative {@link EditorField} descriptors into bound Swing components.
+ */
 final class EditorFieldComponentFactory
 {
 	private EditorFieldComponentFactory()
@@ -127,7 +130,14 @@ final class EditorFieldComponentFactory
 		comboBox.setSelectedItem(field.getGetter().get());
 		comboBox.addActionListener(event ->
 		{
-			field.getSetter().accept((T) comboBox.getSelectedItem());
+			int selectedIndex = comboBox.getSelectedIndex();
+
+			if (selectedIndex < 0)
+			{
+				return;
+			}
+
+			field.getSetter().accept(comboBox.getItemAt(selectedIndex));
 			onChange.run();
 		});
 		return comboBox;

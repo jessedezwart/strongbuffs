@@ -5,6 +5,9 @@ import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
 import nl.jessedezwart.strongbuffs.model.condition.NumericConditionDefinition;
 
 @EqualsAndHashCode(callSuper = true)
+/**
+ * Persisted condition definition for the local player's current prayer points.
+ */
 public class PrayerPointsCondition extends NumericConditionDefinition
 {
 	public PrayerPointsCondition()

@@ -11,6 +11,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import net.runelite.client.ui.ColorScheme;
 
+/**
+ * Shared Swing helpers used by both condition and action editor registries.
+ */
 public final class ActionEditorSupport
 {
 	private ActionEditorSupport()

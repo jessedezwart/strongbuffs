@@ -1,0 +1,463 @@
+package nl.jessedezwart.strongbuffs.runtime.condition;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import net.runelite.api.Prayer;
+import net.runelite.api.Skill;
+import nl.jessedezwart.strongbuffs.runtime.state.impl.InventoryRuntimeState;
+
+/**
+ * Immutable watchlist describing which runtime state slices currently matter.
+ *
+ * The compiler derives this from the enabled rule set and passes it to the
+ * tracker so event handlers only refresh state that some active rule can
+ * actually observe.
+ *
+ * This is done so that we can minimize the amount of state tracking and
+ * expensive game tick updates when they are not needed, for example when the
+ * player only has rules that check inventory conditions while they are outside.
+ */
+public final class RuntimeStateWatchlist
+{
+	private static final RuntimeStateWatchlist EMPTY = builder().build();
+
+	private final boolean hitpoints;
+	private final boolean prayerPoints;
+	private final boolean specialAttack;
+	private final boolean runEnergy;
+	private final boolean poison;
+	private final boolean slayerTask;
+	private final boolean playerLocation;
+	private final boolean playerInstance;
+	private final boolean inventoryValue;
+	private final boolean bankValue;
+	private final Set<Prayer> prayers;
+	private final Set<Skill> realSkills;
+	private final Set<Skill> xpGainSkills;
+	private final Set<String> inventoryItems;
+	private final Set<String> equippedItems;
+	private final Set<String> groundItems;
+
+	private final Set<String> itemPrices;
+
+	private RuntimeStateWatchlist(boolean hitpoints, boolean prayerPoints, boolean specialAttack, boolean runEnergy,
+			boolean poison, boolean slayerTask, boolean playerLocation, boolean playerInstance,
+			boolean inventoryValue, boolean bankValue, Set<Prayer> prayers,
+			Set<Skill> realSkills, Set<Skill> xpGainSkills, Set<String> inventoryItems, Set<String> equippedItems,
+			Set<String> groundItems, Set<String> itemPrices)
+	{
+		this.hitpoints = hitpoints;
+		this.prayerPoints = prayerPoints;
+		this.specialAttack = specialAttack;
+		this.runEnergy = runEnergy;
+		this.poison = poison;
+		this.slayerTask = slayerTask;
+		this.playerLocation = playerLocation;
+		this.playerInstance = playerInstance;
+		this.inventoryValue = inventoryValue;
+		this.bankValue = bankValue;
+		this.prayers = Collections.unmodifiableSet(prayers);
+		this.realSkills = Collections.unmodifiableSet(realSkills);
+		this.xpGainSkills = Collections.unmodifiableSet(xpGainSkills);
+		this.inventoryItems = Collections.unmodifiableSet(inventoryItems);
+		this.equippedItems = Collections.unmodifiableSet(equippedItems);
+		this.groundItems = Collections.unmodifiableSet(groundItems);
+		this.itemPrices = Collections.unmodifiableSet(itemPrices);
+	}
+
+	public static RuntimeStateWatchlist empty()
+	{
+		return EMPTY;
+	}
+
+	public static Builder builder()
+	{
+		return new Builder();
+	}
+
+	public boolean tracksHitpoints()
+	{
+		return hitpoints;
+	}
+
+	public boolean tracksPrayerPoints()
+	{
+		return prayerPoints;
+	}
+
+	public boolean tracksSpecialAttack()
+	{
+		return specialAttack;
+	}
+
+	public boolean tracksRunEnergy()
+	{
+		return runEnergy;
+	}
+
+	public boolean tracksPoison()
+	{
+		return poison;
+	}
+
+	public boolean tracksSlayerTask()
+	{
+		return slayerTask;
+	}
+
+	public boolean tracksPlayerLocation()
+	{
+		return playerLocation;
+	}
+
+	public boolean tracksPlayerInstance()
+	{
+		return playerInstance;
+	}
+
+	public boolean tracksInventoryValue()
+	{
+		return inventoryValue;
+	}
+
+	public boolean tracksBankValue()
+	{
+		return bankValue;
+	}
+
+	public Set<String> getItemPrices()
+	{
+		return itemPrices;
+	}
+
+	public boolean hasItemPriceTracking()
+	{
+		return !itemPrices.isEmpty();
+	}
+
+	public Set<Prayer> getPrayers()
+	{
+		return prayers;
+	}
+
+	public Set<Skill> getRealSkills()
+	{
+		return realSkills;
+	}
+
+	public Set<Skill> getXpGainSkills()
+	{
+		return xpGainSkills;
+	}
+
+	public Set<String> getInventoryItems()
+	{
+		return inventoryItems;
+	}
+
+	public Set<String> getEquippedItems()
+	{
+		return equippedItems;
+	}
+
+	public Set<String> getGroundItems()
+	{
+		return groundItems;
+	}
+
+	/**
+	 * Returns whether a periodic game tick is required in addition to direct event
+	 * updates.
+	 */
+	public boolean needsGameTick()
+	{
+		return runEnergy || playerLocation || playerInstance || !xpGainSkills.isEmpty();
+	}
+
+	public boolean hasInventoryTracking()
+	{
+		return !inventoryItems.isEmpty();
+	}
+
+	public boolean hasEquipmentTracking()
+	{
+		return !equippedItems.isEmpty();
+	}
+
+	public boolean hasGroundItemTracking()
+	{
+		return !groundItems.isEmpty();
+	}
+
+	public static final class Builder
+	{
+		private boolean hitpoints;
+		private boolean prayerPoints;
+		private boolean specialAttack;
+		private boolean runEnergy;
+		private boolean poison;
+		private boolean slayerTask;
+		private boolean playerLocation;
+		private boolean playerInstance;
+		private boolean inventoryValue;
+		private boolean bankValue;
+		private final Set<Prayer> prayers = EnumSet.noneOf(Prayer.class);
+		private final Set<Skill> realSkills = EnumSet.noneOf(Skill.class);
+		private final Set<Skill> xpGainSkills = EnumSet.noneOf(Skill.class);
+		private final Set<String> inventoryItems = new LinkedHashSet<>();
+		private final Set<String> equippedItems = new LinkedHashSet<>();
+		private final Set<String> groundItems = new LinkedHashSet<>();
+		private final Set<String> itemPrices = new LinkedHashSet<>();
+
+		public Builder requireHitpoints()
+		{
+			hitpoints = true;
+			return this;
+		}
+
+		public Builder requirePrayerPoints()
+		{
+			prayerPoints = true;
+			return this;
+		}
+
+		public Builder requireSpecialAttack()
+		{
+			specialAttack = true;
+			return this;
+		}
+
+		public Builder requireRunEnergy()
+		{
+			runEnergy = true;
+			return this;
+		}
+
+		public Builder requirePoison()
+		{
+			poison = true;
+			return this;
+		}
+
+		public Builder requireSlayerTask()
+		{
+			slayerTask = true;
+			return this;
+		}
+
+		public Builder requirePlayerLocation()
+		{
+			playerLocation = true;
+			return this;
+		}
+
+		public Builder requirePlayerInstance()
+		{
+			playerInstance = true;
+			return this;
+		}
+
+		public Builder requirePrayer(Prayer prayer)
+		{
+			if (prayer != null)
+			{
+				prayers.add(prayer);
+			}
+
+			return this;
+		}
+
+		public Builder requireRealSkill(Skill skill)
+		{
+			if (skill != null)
+			{
+				realSkills.add(skill);
+			}
+
+			return this;
+		}
+
+		public Builder requireXpGainSkill(Skill skill)
+		{
+			if (skill != null)
+			{
+				xpGainSkills.add(skill);
+			}
+
+			return this;
+		}
+
+		public Builder requireInventoryItem(String itemName)
+		{
+			addName(inventoryItems, itemName);
+			return this;
+		}
+
+		public Builder requireEquippedItem(String itemName)
+		{
+			addName(equippedItems, itemName);
+			return this;
+		}
+
+		public Builder requireGroundItem(String itemName)
+		{
+			addName(groundItems, itemName);
+			return this;
+		}
+
+		public Builder requireInventoryValue()
+		{
+			inventoryValue = true;
+			return this;
+		}
+
+		public Builder requireBankValue()
+		{
+			bankValue = true;
+			return this;
+		}
+
+		public Builder requireItemPrice(String itemName)
+		{
+			addName(itemPrices, itemName);
+			return this;
+		}
+
+		public RuntimeStateWatchlist build()
+		{
+			return new RuntimeStateWatchlist(hitpoints, prayerPoints, specialAttack, runEnergy, poison, slayerTask,
+					playerLocation, playerInstance, inventoryValue, bankValue, copyPrayers(), copyRealSkills(),
+					copyXpGainSkills(), new LinkedHashSet<>(inventoryItems), new LinkedHashSet<>(equippedItems),
+					new LinkedHashSet<>(groundItems), new LinkedHashSet<>(itemPrices));
+		}
+
+		/**
+		 * Merges another requirement set into this builder when compiling multiple
+		 * rules together.
+		 */
+		public Builder merge(RuntimeStateWatchlist requirements)
+		{
+			if (requirements == null)
+			{
+				return this;
+			}
+
+			if (requirements.tracksHitpoints())
+			{
+				requireHitpoints();
+			}
+
+			if (requirements.tracksPrayerPoints())
+			{
+				requirePrayerPoints();
+			}
+
+			if (requirements.tracksSpecialAttack())
+			{
+				requireSpecialAttack();
+			}
+
+			if (requirements.tracksRunEnergy())
+			{
+				requireRunEnergy();
+			}
+
+			if (requirements.tracksPoison())
+			{
+				requirePoison();
+			}
+
+			if (requirements.tracksSlayerTask())
+			{
+				requireSlayerTask();
+			}
+
+			if (requirements.tracksPlayerLocation())
+			{
+				requirePlayerLocation();
+			}
+
+			if (requirements.tracksPlayerInstance())
+			{
+				requirePlayerInstance();
+			}
+
+			if (requirements.tracksInventoryValue())
+			{
+				requireInventoryValue();
+			}
+
+			if (requirements.tracksBankValue())
+			{
+				requireBankValue();
+			}
+
+			for (String itemName : requirements.getItemPrices())
+			{
+				requireItemPrice(itemName);
+			}
+
+			for (Prayer prayer : requirements.getPrayers())
+			{
+				requirePrayer(prayer);
+			}
+
+			for (Skill skill : requirements.getRealSkills())
+			{
+				requireRealSkill(skill);
+			}
+
+			for (Skill skill : requirements.getXpGainSkills())
+			{
+				requireXpGainSkill(skill);
+			}
+
+			for (String itemName : requirements.getInventoryItems())
+			{
+				requireInventoryItem(itemName);
+			}
+
+			for (String itemName : requirements.getEquippedItems())
+			{
+				requireEquippedItem(itemName);
+			}
+
+			for (String itemName : requirements.getGroundItems())
+			{
+				requireGroundItem(itemName);
+			}
+
+			return this;
+		}
+
+		private static void addName(Set<String> target, String value)
+		{
+			// Item tracking uses normalized names so editor input and runtime lookups can
+			// match even
+			// if casing or whitespace differs.
+			String normalized = InventoryRuntimeState.normalizeName(value);
+
+			if (normalized != null)
+			{
+				target.add(normalized);
+			}
+		}
+
+		private Set<Prayer> copyPrayers()
+		{
+			return prayers.isEmpty() ? EnumSet.noneOf(Prayer.class) : EnumSet.copyOf(prayers);
+		}
+
+		private Set<Skill> copyRealSkills()
+		{
+			return realSkills.isEmpty() ? EnumSet.noneOf(Skill.class) : EnumSet.copyOf(realSkills);
+		}
+
+		private Set<Skill> copyXpGainSkills()
+		{
+			return xpGainSkills.isEmpty() ? EnumSet.noneOf(Skill.class) : EnumSet.copyOf(xpGainSkills);
+		}
+	}
+}

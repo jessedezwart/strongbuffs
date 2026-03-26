@@ -19,6 +19,9 @@ import net.runelite.client.ui.PluginPanel;
 /**
  * Root RuneLite sidebar panel for managing rule definitions and editing the
  * selected draft.
+ *
+ * <p>This view owns the list/detail layout and delegates state transitions to
+ * {@link RulePanelController}. It never mutates persisted storage or runtime objects directly.</p>
  */
 @Singleton
 public class StrongBuffsPanel extends PluginPanel
@@ -54,6 +57,9 @@ public class StrongBuffsPanel extends PluginPanel
 		refreshFromController();
 	}
 
+	/**
+	 * Reloads persisted rules and refreshes both the list and edit panes.
+	 */
 	public void reload()
 	{
 		controller.reload();
@@ -142,6 +148,7 @@ public class StrongBuffsPanel extends PluginPanel
 
 		SwingUtilities.invokeLater(() ->
 		{
+			// Repaint after layout settles so the panel scroll position follows the refreshed editor.
 			ruleEditPanel.scrollRectToVisible(ruleEditPanel.getBounds());
 			revalidate();
 			repaint();

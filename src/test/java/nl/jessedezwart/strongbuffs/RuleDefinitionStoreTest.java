@@ -6,22 +6,27 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import nl.jessedezwart.strongbuffs.model.rule.ActivationMode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.ComparisonOperator;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.SoundAlertAction;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
+import nl.jessedezwart.strongbuffs.model.condition.impl.ItemInInventoryCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
+import nl.jessedezwart.strongbuffs.model.registry.DefinitionCatalog;
 import org.junit.Test;
 
 public class RuleDefinitionStoreTest
 {
 	private final RuleDefinitionStore store = new RuleDefinitionStore(null);
+	private final DefinitionCatalog definitionCatalog = new DefinitionCatalog();
 
 	@Test
 	public void serializeAndDeserializeRoundTripsTypedDefinitions()
@@ -120,6 +125,40 @@ public class RuleDefinitionStoreTest
 	}
 
 	@Test
+	public void serializeAndDeserializeSupportsAllRegisteredConditionDefinitions()
+	{
+		RuleDefinition rule = new RuleDefinition();
+		rule.setId("all-conditions");
+		rule.setName("All Conditions");
+
+		ConditionGroup rootGroup = new ConditionGroup();
+
+		for (Class<? extends ConditionDefinition> conditionClass : definitionCatalog.getConditionDefinitions())
+		{
+			ConditionDefinition definition = definitionCatalog.createCondition(conditionClass);
+
+			if (definition instanceof ItemInInventoryCondition)
+			{
+				((ItemInInventoryCondition) definition).setItemName("Shark");
+			}
+
+			rootGroup.getChildren().add(definition);
+		}
+
+		rule.setRootGroup(rootGroup);
+		rule.setAction(new OverlayTextAction());
+
+		String serialized = store.serialize(List.of(rule));
+		List<RuleDefinition> restored = store.deserialize(serialized);
+
+		assertEquals(1, restored.size());
+		assertEquals(
+			definitionCatalog.getConditionDefinitions().stream().map(Class::getName).collect(Collectors.toList()),
+			restored.get(0).getRootGroup().getChildren().stream().map(child -> child.getClass().getName())
+				.collect(Collectors.toList()));
+	}
+
+	@Test
 	public void serializeSkipsNullEntriesAndUpgradesSchemaVersion()
 	{
 		RuleDefinition rule = new RuleDefinition();
@@ -131,9 +170,10 @@ public class RuleDefinitionStoreTest
 		String serialized = store.serialize(Arrays.asList(null, rule));
 		List<RuleDefinition> restored = store.deserialize(serialized);
 
-		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, rule.getSchemaVersion());
+		assertEquals(0, rule.getSchemaVersion());
 		assertFalse(serialized.contains("null"));
 		assertEquals(1, restored.size());
+		assertEquals(RuleDefinitionStore.CURRENT_SCHEMA_VERSION, restored.get(0).getSchemaVersion());
 		assertEquals("only-rule", restored.get(0).getId());
 	}
 

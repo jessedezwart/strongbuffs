@@ -7,15 +7,19 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import nl.jessedezwart.strongbuffs.model.action.impl.OverlayTextAction;
 import nl.jessedezwart.strongbuffs.model.action.impl.ScreenFlashAction;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
+import nl.jessedezwart.strongbuffs.model.condition.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionGroup;
-import nl.jessedezwart.strongbuffs.model.condition.tree.ConditionLogic;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
 import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
+import nl.jessedezwart.strongbuffs.panel.state.RuleDraftSession;
+import nl.jessedezwart.strongbuffs.panel.state.RuleDraftValidator;
 import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
+import nl.jessedezwart.strongbuffs.panel.state.RuleRepository;
+import nl.jessedezwart.strongbuffs.panel.state.UnsavedChangesGuard;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
 import net.runelite.client.ui.laf.RuneLiteLAF;
 
@@ -32,7 +36,8 @@ public class StrongBuffsPanelPreview
 		ConditionEditorRegistry conditionRegistry = new ConditionEditorRegistry();
 		ActionEditorRegistry actionRegistry = new ActionEditorRegistry();
 		InMemoryRuleDefinitionStore store = new InMemoryRuleDefinitionStore(createSampleRules());
-		RulePanelController controller = new RulePanelController(store, conditionRegistry, actionRegistry);
+		RulePanelController controller = new RulePanelController(new RuleRepository(store), new RuleDraftSession(),
+			new RuleDraftValidator(), new UnsavedChangesGuard());
 
 		List<RuleDefinition> rules = controller.getVisibleRules();
 
