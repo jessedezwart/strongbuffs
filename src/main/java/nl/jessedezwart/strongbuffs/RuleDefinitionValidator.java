@@ -8,7 +8,6 @@ import nl.jessedezwart.strongbuffs.model.condition.ConditionDefinition;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionGroup;
 import nl.jessedezwart.strongbuffs.model.condition.ConditionNode;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
 import nl.jessedezwart.strongbuffs.panel.state.RuleValidationResult;
 
 /**
@@ -17,6 +16,10 @@ import nl.jessedezwart.strongbuffs.panel.state.RuleValidationResult;
 @Singleton
 public class RuleDefinitionValidator
 {
+	public static final String FIELD_NAME = "name";
+	public static final String FIELD_CONDITIONS = "conditions";
+	public static final String FIELD_ACTION = "action";
+
 	public RuleValidationResult validate(RuleDefinition ruleDefinition)
 	{
 		if (ruleDefinition == null)
@@ -28,12 +31,12 @@ public class RuleDefinitionValidator
 
 		if (ruleDefinition.getName() == null || ruleDefinition.getName().trim().isEmpty())
 		{
-			errors.put(RulePanelController.FIELD_NAME, "Name is required.");
+			errors.put(FIELD_NAME, "Name is required.");
 		}
 
 		if (!hasLeafCondition(ruleDefinition.getRootGroup()))
 		{
-			errors.put(RulePanelController.FIELD_CONDITIONS, "Add at least one condition.");
+			errors.put(FIELD_CONDITIONS, "Add at least one condition.");
 		}
 		else
 		{
@@ -41,7 +44,7 @@ public class RuleDefinitionValidator
 
 			if (conditionError != null)
 			{
-				errors.put(RulePanelController.FIELD_CONDITIONS, conditionError);
+				errors.put(FIELD_CONDITIONS, conditionError);
 			}
 		}
 
@@ -71,7 +74,7 @@ public class RuleDefinitionValidator
 			}
 
 			Map<String, String> conditionErrors = new LinkedHashMap<>();
-			((ConditionDefinition) child).validate(conditionErrors, RulePanelController.FIELD_CONDITIONS);
+			((ConditionDefinition) child).validate(conditionErrors, FIELD_CONDITIONS);
 
 			if (!conditionErrors.isEmpty())
 			{
@@ -86,11 +89,11 @@ public class RuleDefinitionValidator
 	{
 		if (actionDefinition == null)
 		{
-			errors.put(RulePanelController.FIELD_ACTION, "Choose an action.");
+			errors.put(FIELD_ACTION, "Choose an action.");
 			return;
 		}
 
-		actionDefinition.validate(errors, RulePanelController.FIELD_ACTION);
+		actionDefinition.validate(errors, FIELD_ACTION);
 	}
 
 	private static boolean hasLeafCondition(ConditionGroup group)

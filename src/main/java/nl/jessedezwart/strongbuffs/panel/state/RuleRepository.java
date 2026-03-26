@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
+import nl.jessedezwart.strongbuffs.RuleDefinitionCloner;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 
@@ -124,10 +125,10 @@ public class RuleRepository
 		copy.setId(UUID.randomUUID().toString());
 		copy.setName(buildDuplicateName(existingRule.getName()));
 		copy.setEnabled(existingRule.isEnabled());
-		copy.setRootGroup(RuleDraft.copyGroup(existingRule.getRootGroup()));
+		copy.setRootGroup(RuleDefinitionCloner.copyGroup(existingRule.getRootGroup()));
 		copy.setActivationMode(existingRule.getActivationMode());
 		copy.setCooldownTicks(existingRule.getCooldownTicks());
-		copy.setAction(RuleDraft.copyAction(existingRule.getAction()));
+		copy.setAction(RuleDefinitionCloner.copyAction(existingRule.getAction()));
 		persistedRules.add(copy);
 		persist();
 		return copy;
