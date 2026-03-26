@@ -1,0 +1,37 @@
+name: Lint
+
+on:
+    pull_request:
+        paths:
+            - '.github/workflows/lint.yml'
+            - 'website/**'
+            - 'package.json'
+            - 'package-lock.json'
+            - '.prettierrc.json'
+            - '.prettierignore'
+            - 'eslint.config.mjs'
+            - 'tsconfig.website.json'
+            - 'build.js'
+
+jobs:
+    website:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: npm
+
+            - name: Install website dependencies
+              run: npm ci
+
+            - name: Check formatting
+              run: npm run format:check
+
+            - name: Lint website
+              run: npm run lint:website

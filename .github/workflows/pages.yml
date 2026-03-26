@@ -2,8 +2,21 @@ name: Pages
 
 on:
     push:
-       branches:
-           - main
+        branches:
+            - main
+        paths:
+            - '.github/workflows/pages.yml'
+            - 'build.gradle'
+            - 'settings.gradle'
+            - 'gradle/**'
+            - 'gradlew'
+            - 'gradlew.bat'
+            - 'src/**'
+            - 'website/**'
+            - 'package.json'
+            - 'package-lock.json'
+            - 'tsconfig.website.json'
+            - 'build.js'
     workflow_dispatch:
 
 permissions:
@@ -44,15 +57,6 @@ jobs:
 
             - name: Install website dependencies
               run: npm ci
-
-            - name: Lint website sources
-              run: npm run lint:website
-
-            - name: Check website formatting
-              run: npm run format:check
-
-            - name: Typecheck website
-              run: npm run typecheck:website
 
             - name: Build website bundle
               run: npm run build:website

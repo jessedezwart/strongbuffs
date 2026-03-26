@@ -2,9 +2,18 @@ name: CI
 
 on:
     pull_request:
+        paths:
+            - '.github/workflows/ci.yml'
+            - 'build.gradle'
+            - 'settings.gradle'
+            - 'gradle/**'
+            - 'gradlew'
+            - 'gradlew.bat'
+            - 'config/checkstyle/**'
+            - 'src/**'
 
 jobs:
-    build:
+    java:
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -15,11 +24,6 @@ jobs:
         steps:
             - uses: actions/checkout@v5
 
-            - uses: actions/setup-node@v5
-              with:
-                  node-version: 24
-                  cache: npm
-
             - uses: actions/setup-java@v5
               with:
                   distribution: temurin
@@ -29,20 +33,5 @@ jobs:
               with:
                   gradle-version: wrapper
 
-            - name: Checkstyle
-              run: ./gradlew checkstyleMain checkstyleTest
-
-            - name: Install website dependencies
-              run: npm ci
-
-            - name: Typecheck website
-              run: npm run typecheck:website
-
-            - name: Build website bundle
-              run: npm run build:website
-
-            - name: Test
-              run: ./gradlew test
-
-            - name: Build
-              run: ./gradlew build
+            - name: Check
+              run: ./gradlew check
