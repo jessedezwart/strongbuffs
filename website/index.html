@@ -22,7 +22,12 @@
 	<meta name="twitter:description" content="Build and export Strong Buffs rule JSON for RuneLite.">
 
 	<title>Strong Buffs Rule Builder</title>
+	<link rel="preload" href="app.css" as="style">
+	<link rel="preload" href="generated/definition-manifest.js" as="script">
+	<link rel="preload" href="app.js" as="script">
 	<link rel="stylesheet" href="app.css">
+	<script defer src="generated/definition-manifest.js"></script>
+	<script defer src="app.js"></script>
 </head>
 
 <body>
@@ -136,8 +141,6 @@
 		</aside>
 	</main>
 
-	<script defer src="generated/definition-manifest.js"></script>
-	<script type="module" src="app.js"></script>
 </body>
 
 </html>
