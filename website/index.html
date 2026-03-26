@@ -1,48 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description"
+		content="Build Strong Buffs rules for RuneLite with a fast visual editor, then copy import-ready JSON into the plugin.">
+	<meta name="robots" content="index, follow">
+	<meta name="referrer" content="strict-origin-when-cross-origin">
+	<meta name="theme-color" content="#0f1517">
+	<meta name="application-name" content="Strong Buffs Rule Builder">
+
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Strong Buffs Rule Builder">
+	<meta property="og:description"
+		content="Create one Strong Buffs rule, copy JSON, and import it directly in RuneLite.">
+	<meta property="og:site_name" content="Strong Buffs">
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="Strong Buffs Rule Builder">
+	<meta name="twitter:description" content="Build and export Strong Buffs rule JSON for RuneLite.">
+
 	<title>Strong Buffs Rule Builder</title>
 	<link rel="stylesheet" href="app.css">
 </head>
+
 <body>
 	<header class="hero">
-		<p class="eyebrow">Strong Buffs</p>
-		<h1>Build one rule. Copy JSON. Import it in RuneLite.</h1>
-		<p class="lede">Native HTML, CSS, and JS. No framework. No waiting.</p>
+		<p class="hero__eyebrow">Strong Buffs</p>
+		<h1>Rule Builder</h1>
 	</header>
 
 	<main class="layout">
-		<section class="panel" id="editor-panel">
-			<div class="section-head">
-				<h2>Rule Builder</h2>
-				<p>Everything here comes from the plugin metadata manifest.</p>
-			</div>
+		<div class="layout__editor">
+			<section class="panel panel--editor" id="editor-panel">
 
-			<section class="stack" id="basics-section"></section>
-			<section class="stack" id="conditions-section"></section>
-			<section class="stack" id="activation-section"></section>
-			<section class="stack" id="action-section"></section>
-		</section>
+				<section class="panel__section" aria-labelledby="basics-heading">
+					<header class="section-head">
+						<h2 id="basics-heading">Details</h2>
+						<p>Rule name and enabled state.</p>
+					</header>
+					<section id="basics-section"></section>
+				</section>
 
-		<aside class="panel output-panel">
-			<div class="section-head">
-				<h2>Import JSON</h2>
-				<p>Paste this into the plugin panel with <strong>Import JSON</strong>.</p>
-			</div>
+				<section class="panel__section" aria-labelledby="conditions-heading">
+					<header class="section-head">
+						<h2 id="conditions-heading">Conditions</h2>
+						<p>What triggers the action.</p>
+					</header>
+					<section id="conditions-section"></section>
+				</section>
 
-			<div class="status" id="status-box"></div>
-			<div class="output-actions">
-				<button type="button" id="copy-json">Copy JSON</button>
-				<button type="button" id="download-json">Download JSON</button>
-				<button type="button" class="secondary" id="reset-rule">Reset</button>
+				<section class="panel__section" aria-labelledby="activation-heading">
+					<header class="section-head">
+						<h2 id="activation-heading">Activation</h2>
+						<p>Choose when the rule should fire.</p>
+					</header>
+					<section id="activation-section"></section>
+				</section>
+
+				<section class="panel__section" aria-labelledby="action-heading">
+					<header class="section-head">
+						<h2 id="action-heading">Action</h2>
+						<p>What the rule does when it fires.</p>
+					</header>
+					<section id="action-section"></section>
+				</section>
+			</section>
+		</div>
+
+		<aside class="panel panel--output">
+			<header class="section-head">
+				<h2>Output</h2>
+				<p>
+					Paste into the plugin.
+				</p>
+			</header>
+
+			<section class="status" id="status-box" aria-live="polite"></section>
+			<div class="output__json">
+				<div class="output__actions" role="toolbar" aria-label="JSON actions">
+					<button type="button" class="button--secondary button--icon" id="copy-json" aria-label="Copy JSON"
+						title="Copy JSON">
+						<span class="button__icon icon--copy" aria-hidden="true"></span>
+					</button>
+					<button type="button" class="button--secondary button--icon" id="download-json"
+						aria-label="Download JSON" title="Download JSON">
+						<span class="button__icon icon--download" aria-hidden="true"></span>
+					</button>
+				</div>
+				<pre><code id="json-output"></code></pre>
 			</div>
-			<pre class="json-output" id="json-output"></pre>
 		</aside>
 	</main>
 
-	<script src="generated/definition-manifest.js"></script>
-	<script src="app.js"></script>
+	<script defer src="generated/definition-manifest.js"></script>
+	<script defer src="app.js"></script>
 </body>
+
 </html>

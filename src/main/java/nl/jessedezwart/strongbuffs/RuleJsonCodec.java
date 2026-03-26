@@ -35,7 +35,6 @@ public class RuleJsonCodec
 	private static final String TYPE_FIELD = "type";
 	private static final String GROUP_TYPE = "group";
 	private final Gson gson;
-	private final DefinitionCatalog definitionCatalog;
 
 	public RuleJsonCodec()
 	{
@@ -45,7 +44,6 @@ public class RuleJsonCodec
 	@Inject
 	public RuleJsonCodec(DefinitionCatalog definitionCatalog)
 	{
-		this.definitionCatalog = definitionCatalog;
 		this.gson = createGson(definitionCatalog);
 	}
 
