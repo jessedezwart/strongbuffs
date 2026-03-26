@@ -10,3 +10,4 @@ nbproject/
 docs/runelite-wiki/
 bin
 website/app.js
+node_modules/
