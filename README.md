@@ -35,7 +35,7 @@ Definitions are the approved building blocks of the system.
 
 - A `ConditionDefinition` describes one leaf condition the user can configure, such as HP below a threshold, prayer active, item equipped, or being inside an instance.
 - An `ActionDefinition` describes what should happen when a rule activates, such as showing overlay text, flashing the screen, or playing a sound.
-- `DefinitionCatalog` is the source of truth for which definition types exist. It is used by the editor and by JSON deserialization, so the same whitelist drives both UI and persistence.
+- `DefinitionCatalog` is the source of truth for which definition types exist. It is used by JSON deserialization and by website manifest generation, so the same whitelist drives both the external builder and persistence.
 
 Definitions are persisted data only. They contain editor metadata, validation, copy logic, and type IDs. They do not talk to the RuneLite API directly.
 
@@ -61,9 +61,12 @@ Actions are split into two layers on purpose:
 ### Main Layers
 
 - `model/`: persisted condition, action, and rule definitions
-- `panel/`: Swing editor UI, draft editing, validation, and unsaved-change flows
+- `panel/`: Swing rule-management UI for listing rules, opening the external builder, and importing JSON
 - `RuleDefinitionStore`: JSON serialization into RuneLite config
+- `RuleJsonCodec`: shared JSON codec for stored rule arrays and single-rule imports
+- `RuleDefinitionValidator`: validation for imported persisted rules
 - `panel/state/RuleRepository`: bridge from persisted rules to the live runtime
+- `website/`: static GitHub Pages rule builder generated from Java metadata
 - `runtime/condition/`: condition evaluation, runtime requirement collection, and tracking plans
 - `runtime/tracker/`: event-driven caching of RuneLite state
 - `runtime/engine/`: rule compilation, trigger indexing, activation semantics, and cooldown handling
@@ -75,9 +78,11 @@ The runtime does not evaluate persisted rules by querying RuneLite ad hoc. Inste
 
 #### 1. Persistence of Rule Definitions
 
-`RuleDefinitionStore` serializes the rule list to one RuneLite config entry as JSON..
+`RuleDefinitionStore` serializes the rule list to one RuneLite config entry as JSON.
 
-`RuleRepository` is the only bridge between persisted edits and the live runtime. When the panel saves or deletes a rule, the repository updates storage and republishes the latest rule set to the runtime controller.
+`RuleRepository` is the only bridge between persisted edits and the live runtime. When the panel imports, duplicates, or deletes a rule, the repository updates storage and republishes the latest rule set to the runtime controller.
+
+Users build rules on the external website. The site is driven by a generated manifest so it knows which condition and action types exist, what fields they expose, and what persisted values they should emit. The plugin still validates imported JSON before saving it.
 
 #### 2. Enabled Rules Are Compiled
 
@@ -149,41 +154,52 @@ Persistent actions can be activated, updated, and deactivated. Transient actions
 flowchart TD
 	A[StrongBuffsPlugin] --> B[StrongBuffsPanel]
 	A --> C[RuleRuntimeController]
-	B --> D[RulePanelController]
-	D --> E[RuleRepository]
-	E --> F[RuleDefinitionStore]
-	E --> C
-	C --> G[RuleCompiler]
-	C --> H[RuntimeConditionTracker]
-	C --> I[RuleEngine]
-	I --> J[ActionDispatcher]
-	J --> K[RuntimeActionHandlerRegistry]
-	K --> L[OverlayTextService]
-	K --> M[ScreenFlashService]
-	K --> N[SoundAlertService]
-	G --> O[CompiledRuleSet]
-	O --> I
-	O --> H
+	B --> D[RuleRepository]
+	B --> E[RuleBuilderLauncher]
+	D --> F[RuleDefinitionStore]
+	D --> G[RuleImportService]
+	G --> H[RuleJsonCodec]
+	G --> I[RuleDefinitionValidator]
+	D --> C
+	C --> J[RuleCompiler]
+	C --> K[RuntimeConditionTracker]
+	C --> L[RuleEngine]
+	L --> M[ActionDispatcher]
+	M --> N[RuntimeActionHandlerRegistry]
+	N --> O[OverlayTextService]
+	N --> P[ScreenFlashService]
+	N --> Q[SoundAlertService]
+	J --> R[CompiledRuleSet]
+	R --> L
+	R --> K
 ```
 
-#### Edit And Save Flow
+#### Import Flow
 
 ```mermaid
 sequenceDiagram
 	participant U as User
+	participant W as Builder Website
 	participant P as StrongBuffsPanel
-	participant C as RulePanelController
 	participant R as RuleRepository
+	participant I as RuleImportService
+	participant J as RuleJsonCodec
+	participant V as RuleDefinitionValidator
 	participant S as RuleDefinitionStore
 	participant RTC as RuleRuntimeController
 	participant RC as RuleCompiler
 	participant T as RuntimeConditionTracker
 	participant E as RuleEngine
 
-	U->>P: Edit draft and press Save
-	P->>C: saveDraft()
-	C->>C: validate draft
-	C->>R: saveRule(rule)
+	U->>W: Configure rule and copy JSON
+	U->>P: Paste JSON and press Import
+	P->>R: importRuleJson(json)
+	R->>I: importRule(json)
+	I->>J: deserializeRule(json)
+	J-->>I: RuleDefinition
+	I->>V: validate(rule)
+	V-->>I: validation result
+	I-->>R: imported rule
 	R->>S: save(rules as JSON)
 	R->>RTC: setRules(latest rules)
 	RTC->>RC: compile(rules)
@@ -278,7 +294,7 @@ AI tools (Claude, Copilot, etc.) are permitted for development, but:
 
 > **You should be able to explain what your code does.**
 
-This is especially true for the core runtime logic. The UI components I don't care about as much. I've vibed the UI together anyway. Creating condition and action definitions is pretty straightforward, so don't need to be super concerned about that either.
+This is especially true for the core runtime logic. The website UI is intentionally lightweight, but the JSON contract, validation, and runtime behavior should still be understood before changes are kept.
 
 Did the agent do something you don't understand? Ask why it did that. Ask yourself if that's the best way to go about it. Maybe learn from it while not losing critical thinking skills :).
 

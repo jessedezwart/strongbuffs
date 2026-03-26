@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import nl.jessedezwart.strongbuffs.RuleDefinitionStore;
+import nl.jessedezwart.strongbuffs.RuleDefinitionCloner;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 
@@ -22,18 +24,21 @@ public class RuleRepository
 {
 	private final RuleDefinitionStore store;
 	private final RuleRuntimeController ruleRuntimeController;
+	private final RuleImportService ruleImportService;
 	private final List<RuleDefinition> persistedRules = new ArrayList<>();
 
 	public RuleRepository(RuleDefinitionStore store)
 	{
-		this(store, null);
+		this(store, null, null);
 	}
 
 	@Inject
-	public RuleRepository(RuleDefinitionStore store, RuleRuntimeController ruleRuntimeController)
+	public RuleRepository(RuleDefinitionStore store, RuleRuntimeController ruleRuntimeController,
+		RuleImportService ruleImportService)
 	{
 		this.store = store;
 		this.ruleRuntimeController = ruleRuntimeController;
+		this.ruleImportService = ruleImportService;
 	}
 
 	/**
@@ -106,6 +111,48 @@ public class RuleRepository
 		persist();
 	}
 
+	public RuleDefinition duplicateRule(String ruleId)
+	{
+		RuleDefinition existingRule = findById(ruleId);
+
+		if (existingRule == null)
+		{
+			return null;
+		}
+
+		RuleDefinition copy = new RuleDefinition();
+		copy.setSchemaVersion(existingRule.getSchemaVersion());
+		copy.setId(UUID.randomUUID().toString());
+		copy.setName(buildDuplicateName(existingRule.getName()));
+		copy.setEnabled(existingRule.isEnabled());
+		copy.setRootGroup(RuleDefinitionCloner.copyGroup(existingRule.getRootGroup()));
+		copy.setActivationMode(existingRule.getActivationMode());
+		copy.setCooldownTicks(existingRule.getCooldownTicks());
+		copy.setAction(RuleDefinitionCloner.copyAction(existingRule.getAction()));
+		persistedRules.add(copy);
+		persist();
+		return copy;
+	}
+
+	public RuleImportResult importRuleJson(String serializedRule)
+	{
+		if (ruleImportService == null)
+		{
+			return RuleImportResult.failure("Rule import is unavailable.");
+		}
+
+		RuleImportResult result = ruleImportService.importRule(serializedRule);
+
+		if (!result.isSuccess())
+		{
+			return result;
+		}
+
+		persistedRules.add(result.getImportedRule());
+		persist();
+		return result;
+	}
+
 	private void persist()
 	{
 		store.save(new ArrayList<>(persistedRules));
@@ -132,5 +179,11 @@ public class RuleRepository
 		}
 
 		return -1;
+	}
+
+	private static String buildDuplicateName(String name)
+	{
+		String baseName = name == null || name.trim().isEmpty() ? "New Rule" : name.trim();
+		return baseName + " Copy";
 	}
 }

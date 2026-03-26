@@ -1,41 +1,41 @@
 package nl.jessedezwart.strongbuffs.panel.view;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.state.RuleControllerActionResult;
-import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
-import nl.jessedezwart.strongbuffs.panel.state.UnsavedResolution;
+import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
+import nl.jessedezwart.strongbuffs.panel.state.RuleBuilderLauncher;
+import nl.jessedezwart.strongbuffs.panel.state.RuleImportResult;
+import nl.jessedezwart.strongbuffs.panel.state.RuleRepository;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 
 /**
- * Root RuneLite sidebar panel for managing rule definitions and editing the
- * selected draft.
- *
- * <p>This view owns the list/detail layout and delegates state transitions to
- * {@link RulePanelController}. It never mutates persisted storage or runtime objects directly.</p>
+ * Root RuneLite sidebar panel for managing persisted rule definitions.
  */
 @Singleton
 public class StrongBuffsPanel extends PluginPanel
 {
-	private final RulePanelController controller;
+	private final RuleRepository ruleRepository;
+	private final RuleBuilderLauncher ruleBuilderLauncher;
 	private final RuleListPanel ruleListPanel;
-	private final RuleEditPanel ruleEditPanel;
+	private String selectedRuleId;
 
 	@Inject
-	public StrongBuffsPanel(RulePanelController controller, ConditionEditorRegistry conditionRegistry,
-			ActionEditorRegistry actionRegistry)
+	public StrongBuffsPanel(RuleRepository ruleRepository, RuleBuilderLauncher ruleBuilderLauncher)
 	{
 		super(true);
-		this.controller = controller;
+		this.ruleRepository = ruleRepository;
+		this.ruleBuilderLauncher = ruleBuilderLauncher;
 
 		JPanel wrappedPanel = getWrappedPanel();
 		wrappedPanel.setLayout(new BorderLayout());
@@ -46,44 +46,59 @@ public class StrongBuffsPanel extends PluginPanel
 		content.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		wrappedPanel.add(content, BorderLayout.NORTH);
 
-		ruleListPanel = new RuleListPanel(this::selectRule, this::createRule, this::duplicateRule, this::deleteRule);
+		ruleListPanel = new RuleListPanel(this::selectRule, this::openRuleBuilder, this::importRule, this::duplicateRule,
+			this::deleteRule);
 		content.add(ruleListPanel);
-		content.add(Box.createVerticalStrut(8));
+		content.add(Box.createVerticalStrut(6));
+		content.add(createInfoPanel());
 
-		ruleEditPanel = new RuleEditPanel(controller, conditionRegistry, actionRegistry, this::handleLiveDraftChange,
-				this::refreshFromController);
-		content.add(ruleEditPanel);
-
-		refreshFromController();
+		refreshFromRepository();
 	}
 
 	/**
-	 * Reloads persisted rules and refreshes both the list and edit panes.
+	 * Reloads persisted rules and refreshes the list.
 	 */
 	public void reload()
 	{
-		controller.reload();
-		refreshFromController();
+		ruleRepository.reload();
+		refreshFromRepository();
 	}
 
 	private void selectRule(String ruleId)
 	{
-		handleControllerAction(controller.requestSelectRule(ruleId));
+		selectedRuleId = ruleId;
+		refreshFromRepository();
 	}
 
-	private void createRule()
+	private void openRuleBuilder()
 	{
-		handleControllerAction(controller.requestCreateRule());
+		if (!ruleBuilderLauncher.openRuleBuilder())
+		{
+			JOptionPane.showMessageDialog(this,
+				"Open the rule builder in your browser:\n" + ruleBuilderLauncher.getRuleBuilderUrl(),
+				"Rule Builder", JOptionPane.INFORMATION_MESSAGE);
+		}
 	}
 
 	private void duplicateRule()
 	{
-		handleControllerAction(controller.requestDuplicateSelectedRule());
+		if (selectedRuleId == null)
+		{
+			return;
+		}
+
+		RuleDefinition duplicatedRule = ruleRepository.duplicateRule(selectedRuleId);
+
+		if (duplicatedRule != null)
+		{
+			selectedRuleId = duplicatedRule.getId();
+			refreshFromRepository();
+		}
 	}
 
 	private void deleteRule()
 	{
-		if (controller.getSelectedRuleId() == null)
+		if (selectedRuleId == null)
 		{
 			return;
 		}
@@ -96,62 +111,90 @@ public class StrongBuffsPanel extends PluginPanel
 			return;
 		}
 
-		handleControllerAction(controller.requestDeleteSelectedRule());
+		ruleRepository.deleteRule(selectedRuleId);
+		selectedRuleId = null;
+		refreshFromRepository();
 	}
 
-	private void handleControllerAction(RuleControllerActionResult result)
+	private void importRule()
 	{
-		if (result.requiresUnsavedConfirmation())
+		JTextArea textArea = new JTextArea(18, 30);
+		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setPreferredSize(new Dimension(360, 280));
+
+		int choice = JOptionPane.showConfirmDialog(this, scrollPane, "Import Rule JSON",
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+		if (choice != JOptionPane.OK_OPTION)
 		{
-			int choice = JOptionPane.showOptionDialog(this, "You have unsaved changes.", "Unsaved Changes",
-					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[]
-					{ "Save", "Discard", "Cancel" }, "Save");
-
-			UnsavedResolution resolution;
-
-			if (choice == 0)
-			{
-				resolution = UnsavedResolution.SAVE;
-			}
-			else if (choice == 1)
-			{
-				resolution = UnsavedResolution.DISCARD;
-			}
-			else
-			{
-				resolution = UnsavedResolution.CANCEL;
-			}
-
-			result = controller.resolvePendingAction(resolution);
+			return;
 		}
 
-		if (!result.getValidationResult().isValid())
+		RuleImportResult result = ruleRepository.importRuleJson(textArea.getText());
+
+		if (!result.isSuccess())
 		{
-			controller.revalidateDraft();
+			JOptionPane.showMessageDialog(this, result.getErrorMessage(), "Import Failed",
+				JOptionPane.ERROR_MESSAGE);
+			return;
 		}
 
-		refreshFromController();
+		selectedRuleId = result.getImportedRule().getId();
+		refreshFromRepository();
 	}
 
-	private void handleLiveDraftChange()
+	private JPanel createInfoPanel()
 	{
-		controller.revalidateDraft();
-		ruleListPanel.refresh(controller.getVisibleRules(), controller.getSelectedRuleId());
-		ruleEditPanel.applyValidation(controller.getValidationResult());
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		javax.swing.JLabel label = new javax.swing.JLabel(
+			"<html><body style='width:180px'>Build new rules on the hosted website, then paste the JSON here with Import JSON.</body></html>");
+		label.setForeground(ColorScheme.TEXT_COLOR);
+		label.setAlignmentX(LEFT_ALIGNMENT);
+		panel.add(label);
+		return panel;
 	}
 
-	private void refreshFromController()
+	private void refreshFromRepository()
 	{
-		controller.revalidateDraft();
-		ruleListPanel.refresh(controller.getVisibleRules(), controller.getSelectedRuleId());
-		ruleEditPanel.refresh(controller.getDraft(), controller.getValidationResult());
+		List<RuleDefinition> rules = ruleRepository.getAll();
 
+		if (rules.isEmpty())
+		{
+			selectedRuleId = null;
+		}
+		else if (!containsRule(rules, selectedRuleId))
+		{
+			selectedRuleId = rules.get(0).getId();
+		}
+
+		ruleListPanel.refresh(rules, selectedRuleId);
 		SwingUtilities.invokeLater(() ->
 		{
-			// Repaint after layout settles so the panel scroll position follows the refreshed editor.
-			ruleEditPanel.scrollRectToVisible(ruleEditPanel.getBounds());
 			revalidate();
 			repaint();
 		});
+	}
+
+	private static boolean containsRule(List<RuleDefinition> rules, String ruleId)
+	{
+		if (ruleId == null)
+		{
+			return false;
+		}
+
+		for (RuleDefinition rule : rules)
+		{
+			if (ruleId.equals(rule.getId()))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

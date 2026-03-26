@@ -2,11 +2,9 @@ package nl.jessedezwart.strongbuffs.panel.view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -21,14 +19,14 @@ import net.runelite.client.ui.ColorScheme;
  */
 public class RuleListPanel extends JPanel
 {
-	private final DefaultListModel<RuleDefinition> listModel = new DefaultListModel<>();
 	private final JComboBox<RuleDefinition> ruleSelector = new JComboBox<>();
+	private final JButton importButton = new JButton("Import JSON");
 	private final JButton duplicateButton = new JButton("Duplicate");
 	private final JButton deleteButton = new JButton("Delete");
 	private boolean suppressSelectionEvents;
 
-	public RuleListPanel(Consumer<String> onSelectRule, Runnable onCreateRule, Runnable onDuplicateRule,
-			Runnable onDeleteRule)
+	public RuleListPanel(Consumer<String> onSelectRule, Runnable onCreateRule, Runnable onImportRule,
+		Runnable onDuplicateRule, Runnable onDeleteRule)
 	{
 		setLayout(new BorderLayout(0, 6));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -45,17 +43,27 @@ public class RuleListPanel extends JPanel
 		actions.add(newButton);
 		actions.add(Box.createVerticalStrut(6));
 
-		JPanel secondaryActions = new JPanel(new GridLayout(1, 2, 6, 0));
+		importButton.addActionListener(event -> onImportRule.run());
+		importButton.setAlignmentX(LEFT_ALIGNMENT);
+		importButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, importButton.getPreferredSize().height));
+		actions.add(importButton);
+		actions.add(Box.createVerticalStrut(6));
+
+		JPanel secondaryActions = new JPanel();
+		secondaryActions.setLayout(new BoxLayout(secondaryActions, BoxLayout.Y_AXIS));
 		secondaryActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
+		duplicateButton.setAlignmentX(LEFT_ALIGNMENT);
 		duplicateButton.addActionListener(event -> onDuplicateRule.run());
 		secondaryActions.add(duplicateButton);
+		secondaryActions.add(Box.createVerticalStrut(6));
 
+		deleteButton.setAlignmentX(LEFT_ALIGNMENT);
 		deleteButton.addActionListener(event -> onDeleteRule.run());
 		secondaryActions.add(deleteButton);
 
 		secondaryActions.setAlignmentX(LEFT_ALIGNMENT);
-		secondaryActions.setMaximumSize(new Dimension(Integer.MAX_VALUE, secondaryActions.getPreferredSize().height));
+		secondaryActions.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		actions.add(secondaryActions);
 
 		add(actions, BorderLayout.NORTH);
@@ -92,12 +100,10 @@ public class RuleListPanel extends JPanel
 	public void refresh(List<RuleDefinition> rules, String selectedRuleId)
 	{
 		suppressSelectionEvents = true;
-		listModel.clear();
 		ruleSelector.removeAllItems();
 
 		for (RuleDefinition ruleDefinition : rules)
 		{
-			listModel.addElement(ruleDefinition);
 			ruleSelector.addItem(ruleDefinition);
 		}
 
@@ -107,11 +113,13 @@ public class RuleListPanel extends JPanel
 		}
 		else
 		{
-			for (int i = 0; i < listModel.size(); i++)
+			for (int i = 0; i < ruleSelector.getItemCount(); i++)
 			{
-				if (selectedRuleId.equals(listModel.get(i).getId()))
+				RuleDefinition ruleDefinition = ruleSelector.getItemAt(i);
+
+				if (selectedRuleId.equals(ruleDefinition.getId()))
 				{
-					ruleSelector.setSelectedItem(listModel.get(i));
+					ruleSelector.setSelectedItem(ruleDefinition);
 					break;
 				}
 			}

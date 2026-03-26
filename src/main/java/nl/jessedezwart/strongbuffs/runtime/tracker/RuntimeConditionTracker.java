@@ -3,8 +3,10 @@ package nl.jessedezwart.strongbuffs.runtime.tracker;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
@@ -274,29 +276,29 @@ public class RuntimeConditionTracker
 			return;
 		}
 
-		gameTickListenerRegistered = syncListener(gameTickListener, gameTickListenerRegistered,
+		gameTickListenerRegistered = syncListener(Objects.requireNonNull(gameTickListener), gameTickListenerRegistered,
 				requirementPlan.requiresSubscription(RuntimeSubscription.GAME_TICK));
-		statListenerRegistered = syncListener(statChangedListener, statListenerRegistered,
+		statListenerRegistered = syncListener(Objects.requireNonNull(statChangedListener), statListenerRegistered,
 				requirementPlan.requiresSubscription(RuntimeSubscription.STAT_CHANGED));
-		varbitListenerRegistered = syncListener(varbitChangedListener, varbitListenerRegistered,
+		varbitListenerRegistered = syncListener(Objects.requireNonNull(varbitChangedListener), varbitListenerRegistered,
 				requirementPlan.requiresSubscription(RuntimeSubscription.VARBIT_CHANGED));
-		itemContainerListenerRegistered = syncListener(itemContainerChangedListener, itemContainerListenerRegistered,
+		itemContainerListenerRegistered = syncListener(Objects.requireNonNull(itemContainerChangedListener), itemContainerListenerRegistered,
 				requirementPlan.requiresSubscription(RuntimeSubscription.ITEM_CONTAINER_CHANGED));
-		groundItemListenerRegistered = syncListener(groundItemListener, groundItemListenerRegistered,
+		groundItemListenerRegistered = syncListener(Objects.requireNonNull(groundItemListener), groundItemListenerRegistered,
 				requirementPlan.requiresSubscription(RuntimeSubscription.GROUND_ITEM));
 	}
 
 	private void unregisterDynamicListeners()
 	{
-		gameTickListenerRegistered = syncListener(gameTickListener, gameTickListenerRegistered, false);
-		statListenerRegistered = syncListener(statChangedListener, statListenerRegistered, false);
-		varbitListenerRegistered = syncListener(varbitChangedListener, varbitListenerRegistered, false);
-		itemContainerListenerRegistered = syncListener(itemContainerChangedListener, itemContainerListenerRegistered,
+		gameTickListenerRegistered = syncListener(Objects.requireNonNull(gameTickListener), gameTickListenerRegistered, false);
+		statListenerRegistered = syncListener(Objects.requireNonNull(statChangedListener), statListenerRegistered, false);
+		varbitListenerRegistered = syncListener(Objects.requireNonNull(varbitChangedListener), varbitListenerRegistered, false);
+		itemContainerListenerRegistered = syncListener(Objects.requireNonNull(itemContainerChangedListener), itemContainerListenerRegistered,
 				false);
-		groundItemListenerRegistered = syncListener(groundItemListener, groundItemListenerRegistered, false);
+		groundItemListenerRegistered = syncListener(Objects.requireNonNull(groundItemListener), groundItemListenerRegistered, false);
 	}
 
-	private boolean syncListener(Object listener, boolean registered, boolean shouldBeRegistered)
+	private boolean syncListener(@Nonnull Object listener, boolean registered, boolean shouldBeRegistered)
 	{
 		if (shouldBeRegistered && !registered)
 		{

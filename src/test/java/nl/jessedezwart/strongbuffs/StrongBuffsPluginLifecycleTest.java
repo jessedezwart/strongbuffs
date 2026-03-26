@@ -14,13 +14,8 @@ import javax.swing.SwingUtilities;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
-import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.state.RuleDraftSession;
-import nl.jessedezwart.strongbuffs.panel.state.RuleDraftValidator;
-import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
+import nl.jessedezwart.strongbuffs.panel.state.RuleBuilderLauncher;
 import nl.jessedezwart.strongbuffs.panel.state.RuleRepository;
-import nl.jessedezwart.strongbuffs.panel.state.UnsavedChangesGuard;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
 import nl.jessedezwart.strongbuffs.runtime.engine.RuleRuntimeController;
 import org.junit.Test;
@@ -112,9 +107,7 @@ public class StrongBuffsPluginLifecycleTest
 	{
 		private TestStrongBuffsPanel()
 		{
-			super(new RulePanelController(new RuleRepository(new RecordingStore()), new RuleDraftSession(),
-				new RuleDraftValidator(), new UnsavedChangesGuard()),
-				new ConditionEditorRegistry(), new ActionEditorRegistry());
+			super(new RuleRepository(new RecordingStore()), new RuleBuilderLauncher());
 		}
 	}
 
