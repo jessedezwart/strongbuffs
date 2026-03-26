@@ -1,12 +1,20 @@
 {
 	"name": "strongbuffs",
 	"private": true,
+	"type": "module",
 	"scripts": {
+		"lint:website": "eslint build.js \"website/src/**/*.ts\"",
+		"format": "prettier --write \"build.js\" \"eslint.config.mjs\" \"package.json\" \"package-lock.json\" \"tsconfig.website.json\" \".prettierrc.json\"",
+		"format:check": "prettier --check \"build.js\" \"eslint.config.mjs\" \"package.json\" \"package-lock.json\" \"tsconfig.website.json\" \".prettierrc.json\"",
 		"build:website": "node build.js",
 		"typecheck:website": "tsc --project tsconfig.website.json --noEmit"
 	},
 	"devDependencies": {
-		"esbuild": "^0.25.3",
-		"typescript": "^5.8.3"
+		"@eslint/js": "^10.0.1",
+		"esbuild": "^0.27.4",
+		"eslint": "^10.1.0",
+		"prettier": "^3.8.1",
+		"typescript": "^6.0.2",
+		"typescript-eslint": "^8.57.2"
 	}
 }

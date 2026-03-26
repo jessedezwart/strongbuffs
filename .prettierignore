@@ -1,0 +1,6 @@
+# Generated/minified output
+website/app.js
+website/generated/
+
+# Dependencies
+node_modules/
