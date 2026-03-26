@@ -5,19 +5,18 @@ on:
         branches:
             - main
         paths:
-            - '.github/workflows/pages.yml'
-            - 'build.gradle'
-            - 'settings.gradle'
-            - 'gradle/**'
-            - 'gradlew'
-            - 'gradlew.bat'
-            - 'src/**'
-            - 'website/**'
-            - 'package.json'
-            - 'package-lock.json'
-            - 'tsconfig.website.json'
-            - 'build.js'
-    workflow_dispatch:
+            - ".github/workflows/pages.yml"
+            - "build.gradle"
+            - "settings.gradle"
+            - "gradle/**"
+            - "gradlew"
+            - "gradlew.bat"
+            - "src/**"
+            - "website/**"
+            - "package.json"
+            - "package-lock.json"
+            - "tsconfig.website.json"
+            - "build.js"
 
 permissions:
     contents: read
@@ -51,6 +50,7 @@ jobs:
             - uses: gradle/actions/setup-gradle@v5
               with:
                   gradle-version: wrapper
+                  cache-cleanup: never
 
             - name: Generate website manifest
               run: ./gradlew generateWebsiteManifest

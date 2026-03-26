@@ -9,6 +9,12 @@
     />
     <meta name="robots" content="index, follow" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta name="theme-color" content="#0f1517" />
     <meta name="application-name" content="Strong Buffs Rule Builder" />
 
@@ -29,10 +35,8 @@
 
     <title>Strong Buffs Rule Builder</title>
     <link rel="preload" href="app.css" as="style" />
-    <link rel="preload" href="generated/definition-manifest.js" as="script" />
     <link rel="preload" href="app.js" as="script" />
     <link rel="stylesheet" href="app.css" />
-    <script defer src="generated/definition-manifest.js"></script>
     <script defer src="app.js"></script>
   </head>
 
@@ -172,7 +176,22 @@
             </button>
           </div>
           <pre><code id="json-output">{
-  "loading": true
+  "schemaVersion": 1,
+  "name": "",
+  "enabled": true,
+  "rootGroup": {
+    "logic": "AND",
+    "children": [],
+    "type": "group"
+  },
+  "activationMode": "WHILE_ACTIVE",
+  "cooldownTicks": 0,
+  "action": {
+    "colorHex": "#FFFFFF",
+    "showValue": true,
+    "type": "overlay_text",
+    "text": ""
+  }
 }</code></pre>
         </div>
       </aside>
