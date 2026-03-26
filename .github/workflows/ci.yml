@@ -16,6 +16,11 @@ jobs:
         steps:
             - uses: actions/checkout@v5
 
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: npm
+
             - uses: actions/setup-java@v5
               with:
                   distribution: temurin
@@ -27,6 +32,15 @@ jobs:
 
             - name: Checkstyle
               run: ./gradlew checkstyleMain checkstyleTest
+
+            - name: Install website dependencies
+              run: npm ci
+
+            - name: Typecheck website
+              run: npm run typecheck:website
+
+            - name: Build website bundle
+              run: npm run build:website
 
             - name: Test
               run: ./gradlew test

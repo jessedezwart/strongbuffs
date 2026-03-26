@@ -25,6 +25,11 @@ jobs:
         steps:
             - uses: actions/checkout@v5
 
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: npm
+
             - uses: actions/setup-java@v5
               with:
                   distribution: temurin
@@ -36,6 +41,12 @@ jobs:
 
             - name: Generate website manifest
               run: ./gradlew generateWebsiteManifest
+
+            - name: Install website dependencies
+              run: npm ci
+
+            - name: Build website bundle
+              run: npm run build:website
 
             - uses: actions/configure-pages@v5
 

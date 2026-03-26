@@ -1,0 +1,12 @@
+{
+	"name": "strongbuffs",
+	"private": true,
+	"scripts": {
+		"build:website": "node build.js",
+		"typecheck:website": "tsc --project tsconfig.website.json --noEmit"
+	},
+	"devDependencies": {
+		"esbuild": "^0.25.3",
+		"typescript": "^5.8.3"
+	}
+}
