@@ -13,13 +13,8 @@ import nl.jessedezwart.strongbuffs.model.condition.impl.HpCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.PrayerPointsCondition;
 import nl.jessedezwart.strongbuffs.model.condition.impl.SpecialAttackCondition;
 import nl.jessedezwart.strongbuffs.model.rule.RuleDefinition;
-import nl.jessedezwart.strongbuffs.panel.editor.ActionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.editor.ConditionEditorRegistry;
-import nl.jessedezwart.strongbuffs.panel.state.RuleDraftSession;
-import nl.jessedezwart.strongbuffs.panel.state.RuleDraftValidator;
-import nl.jessedezwart.strongbuffs.panel.state.RulePanelController;
+import nl.jessedezwart.strongbuffs.panel.state.RuleBuilderLauncher;
 import nl.jessedezwart.strongbuffs.panel.state.RuleRepository;
-import nl.jessedezwart.strongbuffs.panel.state.UnsavedChangesGuard;
 import nl.jessedezwart.strongbuffs.panel.view.StrongBuffsPanel;
 import net.runelite.client.ui.laf.RuneLiteLAF;
 
@@ -33,20 +28,8 @@ public class StrongBuffsPanelPreview
 
 	private static void showPreview()
 	{
-		ConditionEditorRegistry conditionRegistry = new ConditionEditorRegistry();
-		ActionEditorRegistry actionRegistry = new ActionEditorRegistry();
 		InMemoryRuleDefinitionStore store = new InMemoryRuleDefinitionStore(createSampleRules());
-		RulePanelController controller = new RulePanelController(new RuleRepository(store), new RuleDraftSession(),
-			new RuleDraftValidator(), new UnsavedChangesGuard());
-
-		List<RuleDefinition> rules = controller.getVisibleRules();
-
-		if (!rules.isEmpty())
-		{
-			controller.requestSelectRule(rules.get(0).getId());
-		}
-
-		StrongBuffsPanel panel = new StrongBuffsPanel(controller, conditionRegistry, actionRegistry);
+		StrongBuffsPanel panel = new StrongBuffsPanel(new RuleRepository(store), new RuleBuilderLauncher());
 
 		JFrame frame = new JFrame("Strong Buffs UI Preview");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -123,7 +106,7 @@ public class StrongBuffsPanelPreview
 
 		private InMemoryRuleDefinitionStore(List<RuleDefinition> initialRules)
 		{
-			super(null, null);
+			super(null);
 			rules.addAll(initialRules);
 		}
 

@@ -16,6 +16,7 @@ repositories {
 
 def runeLiteVersion = '1.12.20'
 def devLauncherClass = 'nl.jessedezwart.strongbuffs.StrongBuffsPluginTest'
+def websiteManifestGeneratorClass = 'nl.jessedezwart.strongbuffs.website.DefinitionManifestGenerator'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -88,4 +89,21 @@ tasks.register('shadowJar', Jar) {
 	group = BasePlugin.BUILD_GROUP
 	archiveClassifier.set('shadow')
 	archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
+}
+
+tasks.register('generateWebsiteManifest', JavaExec) {
+	dependsOn 'classes'
+	classpath = sourceSets.main.output + sourceSets.main.compileClasspath
+	mainClass = websiteManifestGeneratorClass
+}
+
+tasks.register('verifyWebsiteManifest', JavaExec) {
+	dependsOn 'classes'
+	classpath = sourceSets.main.output + sourceSets.main.compileClasspath
+	mainClass = websiteManifestGeneratorClass
+	args '--check'
+}
+
+tasks.named('check') {
+	dependsOn 'verifyWebsiteManifest'
 }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Strong Buffs Rule Builder</title>
+	<link rel="stylesheet" href="app.css">
+</head>
+<body>
+	<header class="hero">
+		<p class="eyebrow">Strong Buffs</p>
+		<h1>Build one rule. Copy JSON. Import it in RuneLite.</h1>
+		<p class="lede">Native HTML, CSS, and JS. No framework. No waiting.</p>
+	</header>
+
+	<main class="layout">
+		<section class="panel" id="editor-panel">
+			<div class="section-head">
+				<h2>Rule Builder</h2>
+				<p>Everything here comes from the plugin metadata manifest.</p>
+			</div>
+
+			<section class="stack" id="basics-section"></section>
+			<section class="stack" id="conditions-section"></section>
+			<section class="stack" id="activation-section"></section>
+			<section class="stack" id="action-section"></section>
+		</section>
+
+		<aside class="panel output-panel">
+			<div class="section-head">
+				<h2>Import JSON</h2>
+				<p>Paste this into the plugin panel with <strong>Import JSON</strong>.</p>
+			</div>
+
+			<div class="status" id="status-box"></div>
+			<div class="output-actions">
+				<button type="button" id="copy-json">Copy JSON</button>
+				<button type="button" id="download-json">Download JSON</button>
+				<button type="button" class="secondary" id="reset-rule">Reset</button>
+			</div>
+			<pre class="json-output" id="json-output"></pre>
+		</aside>
+	</main>
+
+	<script src="generated/definition-manifest.js"></script>
+	<script src="app.js"></script>
+</body>
+</html>
