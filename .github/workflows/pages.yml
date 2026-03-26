@@ -17,7 +17,6 @@ on:
             - "package-lock.json"
             - "tsconfig.website.json"
             - "build.js"
-    workflow_dispatch:
 
 permissions:
     contents: read
