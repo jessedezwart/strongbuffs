@@ -1,5 +1,25 @@
 #!/bin/bash
-# Pre-commit hook: runs checkstyle on staged Java files
+# Pre-commit hook: runs JS/TS lint and format checks, then checkstyle on staged Java files
+
+echo "Running website lint..."
+npm run lint:website
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	echo ""
+	echo "Website lint failed. Please fix issues before committing."
+	exit 1
+fi
+
+echo "Running formatting check..."
+npm run format:check
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	echo ""
+	echo "Formatting check failed. Run 'npm run format' and commit again."
+	exit 1
+fi
 
 # Get list of staged .java files
 STAGED_JAVA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$')
